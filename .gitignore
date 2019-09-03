@@ -1,0 +1,13 @@
+*logs/*
+*log*
+*tmp*
+*temp*
+README
+.snakemake/
+*cache*/
+images/
+logs/
+log/
+62_expression_variation
+analysis/
+data/

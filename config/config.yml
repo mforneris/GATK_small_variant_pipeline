@@ -1,0 +1,54 @@
+# This is the global configuration file, all parameters should be declared in this file.
+# # #
+# # # We recommend to use yq to parse YAML from bash script (https://github.com/mikefarah/yq ;
+# # # install with brew on mac and simply use the /g/funcgen/bin/yq executable on servers)
+# # #       then, in your script, use :
+# # #       BWA=$(yq r global_config.yml tools.bwa)
+# # #
+# #
+# #
+# # # We first declare global parameters under the 'global' section
+
+global:
+  dmel_genome: /g/furlong/genome/D.melanogaster/Dm6/fasta/dm6.UCSC.noMask.fa
+  wolbachia_genome: /g/furlong/genome/Wolbachia.pipientis.wMel/GCA_000008025.1/fasta/AE017196.fasta
+  DGRP_vcf: /g/furlong/genome/D.melanogaster/Dm6/dgrp/DGRP_freeze_2/freeze2.liftedoverDm3.vcf.bgz
+  gff_dm6: /g/furlong/genome/D.melanogaster/Dm6/6.13/gff/dmel-all-filtered-r6.13-problemcasefilter.gff.gz
+
+paths:
+  fastq: /g/furlong/project/71_F1_parental_genotyping/data/fastq
+  fastqc: /g/furlong/project/71_F1_parental_genotyping/analysis/QC/fastqc
+  multiqc: /g/furlong/project/71_F1_parental_genotyping/analysis/QC/multiQC
+  trimfq: /scratch/perino/F1_genotyping/trimmed_fastq
+  mapqc: /g/furlong/project/71_F1_parental_genotyping/analysis/QC/mapping
+  joint_genome: /g/furlong/genome/D.melanogaster/Dm6_Wolbachia/fasta
+  mapping_scratch: /scratch/perino/F1_genotyping/mapping
+  GATK: /g/furlong/project/71_F1_parental_genotyping/analysis/GATK_variant_call
+  DGRP_vcf: /g/furlong/genome/D.melanogaster/Dm6/dgrp/DGRP_freeze_2
+  population_structure: /g/furlong/project/71_F1_parental_genotyping/analysis/population_structure
+  genome_folder : /g/furlong/genome/D.melanogaster/Dm6/F1_lines
+
+tools:
+  fastqc: /g/funcgen/bin/fastqc-0.11.5
+  multiqc: /g/funcgen/bin/multiqc-1.6
+  trimgalore: /g/furlong/forneris/software/TrimGalore-0.5.0/trim_galore
+  bwa: /g/funcgen/bin/bwa-0.7.17
+  samtools: /g/funcgen/bin/samtools-1.9
+  picard: /g/funcgen/bin/picard-2.16.0
+  gatk: /g/furlong/forneris/software/gatk-4.1.0.0/gatk
+  vcftools: /g/funcgen/bin/vcftools-0.1.14
+  tabix: /g/funcgen/bin/tabix-1.9
+  bgzip: /g/funcgen/bin/bgzip-1.9
+  java: /g/furlong/forneris/software/anaconda3/bin/java
+  gatk-1.8.1: /g/furlong/forneris/software/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef/GenomeAnalysisTK.jar
+  filter_1col: /g/furlong/forneris/software/filter_1col
+  bcftools: /g/funcgen/bin/bcftools-1.9
+  snpeff: /g/furlong/forneris/software/snpEff/snpEff.jar
+  snpsift: /g/furlong/forneris/software/snpEff/SnpSift.jar
+  oneperline: /g/furlong/forneris/software/snpEff/scripts/vcfEffOnePerLine.pl
+  collect_samples_is: /g/furlong/forneris/software/collect_samples_input_sorted.pl
+  bedtools: /g/funcgen/bin/bedtools-2.26.0
+  plink: /g/furlong/forneris/software/plink
+  limix_converter: /g/furlong/forneris/software/anaconda3/bin/limix_converter
+  plot_pca: /g/furlong/project/71_F1_parental_genotyping/src/R/plot_PCA.R
+  rscript: /g/funcgen/bin/Rscript-3.4.3

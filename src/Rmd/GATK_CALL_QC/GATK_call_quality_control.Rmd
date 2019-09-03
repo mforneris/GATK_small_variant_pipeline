@@ -1,0 +1,695 @@
+---
+title: "GATK quality control"
+output:
+   BiocStyle::html_document:
+      toc: true
+      df_print: paged
+      self_contained: true
+      code_download: true
+      highlight: tango
+#bibliography: knn_ml_intro.bib
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r style, echo=FALSE, results="asis"}
+library("knitr")
+options(digits = 2, width = 80)
+options(bitmapType = 'cairo')
+golden_ratio <- (1 + sqrt(5)) / 2
+opts_chunk$set(echo = TRUE, tidy = FALSE, include = TRUE, cache.lazy = FALSE,
+               dev=c('png', 'pdf', 'svg'), fig.height = 5, fig.width = 4 * golden_ratio, comment = '  ', dpi = 300)
+```
+
+```{r setup, comment=NA, echo=FALSE}
+.libPaths( c( .libPaths(), "/g/furlong/forneris/software/R/"))
+library(ggplot2)
+library(ggthemes)
+knitr::opts_chunk$set(fig.path = "images/")
+knitr::opts_chunk$set(cache=TRUE)
+options(stringsAsFactors = FALSE)
+```
+
+
+```{r input, comment=NA, echo=FALSE}
+data_folder <- "/g/furlong/project/71_F1_parental_genotyping/analysis/GATK_variant_call/quality_filters/"
+
+MQ_SNP <- read.table(paste0(data_folder, "Mapping_Quality_MQ_SNP_F1.txt"))
+MQ_INDEL <- read.table(paste0(data_folder, "Mapping_Quality_MQ_INDEL_F1.txt"))
+
+MQRST_SNP <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_SNP_F1.txt"))
+MQRST_INDEL <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_INDEL_F1.txt"))
+
+QD_SNP <- read.table(paste0(data_folder, "Quality_By_Depth_QD_SNP_F1.txt"))
+QD_INDEL <- read.table(paste0(data_folder, "Quality_By_Depth_QD_INDEL_F1.txt"))
+
+SOR_SNP <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_SNP_F1.txt"))
+SOR_INDEL <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_INDEL_F1.txt"))
+
+FS_SNP <- read.table(paste0(data_folder, "Fisher_Strand_FS_SNP_F1.txt"))
+FS_INDEL <- read.table(paste0(data_folder, "Fisher_Strand_FS_INDEL_F1.txt"))
+
+RST_SNP <- read.table(paste0(data_folder, "Rank_Sum_Test_SNP_F1.txt"))
+RST_INDEL <- read.table(paste0(data_folder, "Rank_Sum_Test_INDEL_F1.txt"))
+```
+
+
+These plots are inspired by [GATK recommendations on hard filtering](https://software.broadinstitute.org/gatk/documentation/article.php?id=6925)
+Please check the page and refer to it for further info and assistance.
+
+# Raw values from HaplotypeCaller
+
+These plot show the distribution of quality control scores among the variants called by HaplotypeCaller. This caller is optimized to achieve maximum sensitivity and the results will include false positives. We will use these plots to apply two types hard filters on the data. For each of the 6 paramters we set 2 types of hard cutoffs:
+
+* lenient: to include as many true positives as possible. It will still include some false positives but it shouldn't exclude true positives. This set should be used for data filtering (e.g. WASP) and when we need to be conservative and cautious about variant call. Cutoff lines on plots are in GREEN.
+
+* strict: to remove as many false positives as possible. We put harsh hard filters o our 6 parameters to exclude false positives. We end up with an high confidence variant callset. We do this at the cost of rejecting some true positive as well. This can set should be used when high confidence is key for the analysis (e.g. assigning reads to maternal/paternal allele). Cutoff lines on plots are in RED.
+
+## Mapping Quality
+
+This is the root mean square mapping quality over all the reads at the site. Instead of the average mapping quality of the site, this annotation gives the square root of the average of the squares of the mapping qualities at the site. It is meant to include the standard deviation of the mapping qualities. Including the standard deviation allows us to include the variation in the dataset. A low standard deviation means the values are all close to the mean, whereas a high standard deviation means the values are all far from the mean.When the mapping qualities are good at a site, the MQ will be around 60.
+
+### SNP
+
+```{r MQ_SNP, comment=NA, echo=FALSE}
+ggplot(MQ_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Mapping quality") +
+  geom_vline(xintercept = 40, linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = 58, linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r MQ_INDEL, comment=NA, echo=FALSE}
+ggplot(MQ_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Mapping Quality") +
+  geom_vline(xintercept = 40, linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = 58, linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Mapping Quality Rank Sum Test
+
+This is the u-based z-approximation from the Rank Sum Test for mapping qualities. It compares the mapping qualities of the reads supporting the reference allele and the alternate allele. A positive value means the mapping qualities of the reads supporting the alternate allele are higher than those supporting the reference allele; a negative value indicates the mapping qualities of the reference allele are higher than those supporting the alternate allele. A value close to zero is best and indicates little difference between the mapping qualities.
+
+### SNP
+
+```{r MQRST_SNP, comment=NA, echo=FALSE}
+ggplot(MQRST_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Mapping Quality Rank Sum Test") +
+  geom_vline(xintercept = c(-12.5, 12.5), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-2.5,2.5), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r MQRST_INDEL, comment=NA, echo=FALSE}
+ggplot(MQRST_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Mapping Quality Rank Sum Test") +
+  geom_vline(xintercept = c(-12.5, 12.5), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-2.5,2.5), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+
+## Quality by Depth
+
+This is the variant confidence (from the QUAL field) divided by the unfiltered depth of non-hom-ref samples. This annotation is intended to normalize the variant quality in order to avoid inflation caused when there is deep coverage. For filtering purposes it is better to use QD than either QUAL or DP directly.
+
+### SNP
+
+```{r QD_SNP, comment=NA, echo=FALSE}
+ggplot(QD_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Quality By Depth") +
+  geom_vline(xintercept = c(2), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(20), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r QD_INDEL, comment=NA, echo=FALSE}
+ggplot(QD_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Quality By Depth") +
+  geom_vline(xintercept = c(2), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(20), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Strand Odds Ratio
+
+This is another way to estimate strand bias using a test similar to the symmetric odds ratio test. SOR was created because FS tends to penalize variants that occur at the ends of exons. Reads at the ends of exons tend to only be covered by reads in one direction and FS gives those variants a bad score. SOR will take into account the ratios of reads that cover both alleles.
+
+### SNP
+
+```{r SOR_SNP, comment=NA, echo=FALSE}
+ggplot(SOR_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Strand Odds Ratio") +
+  geom_vline(xintercept = c(3), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(1.5), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r SOR_INDEL, comment=NA, echo=FALSE}
+ggplot(SOR_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Strand Odds Ratio") +
+  geom_vline(xintercept = c(3), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(1.5), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+## FisherTest Strand
+
+This is the Phred-scaled probability that there is strand bias at the site. Strand Bias tells us whether the alternate allele was seen more or less often on the forward or reverse strand than the reference allele. When there little to no strand bias at the site, the FS value will be close to 0.
+
+### SNP
+
+```{r FS_SNP, comment=NA, echo=FALSE}
+ggplot(FS_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) +
+  scale_x_continuous(trans='log10') +
+  theme_bw() + 
+  xlab("FisherTest Strand") +
+  geom_vline(xintercept = c(60), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(10), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r FS_INDEL, comment=NA, echo=FALSE}
+ggplot(FS_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  scale_x_continuous(trans='log10') +
+  theme_bw() + 
+  xlab("FisherTest Strand") +
+  geom_vline(xintercept = c(60), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(10), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Read Position Rank Sum Test
+
+This is the u-based z-approximation from the Rank Sum Test for site position within reads. It compares whether the positions of the reference and alternate alleles are different within the reads. Seeing an allele only near the ends of reads is indicative of error, because that is where sequencers tend to make the most errors. A negative value indicates that the alternate allele is found at the ends of reads more often than the reference allele; a positive value indicates that the reference allele is found at the ends of reads more often than the alternate allele. A value close to zero is best because it indicates there is little difference between the positions of the reference and alternate alleles in the reads.
+
+### SNP
+
+```{r RST_SNP, comment=NA, echo=FALSE}
+ggplot(RST_SNP, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Read Position Rank Sum Test") +
+  geom_vline(xintercept = c(-8,8), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-4,4), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+```{r RST_INDEL, comment=NA, echo=FALSE}
+ggplot(RST_INDEL, aes(V5)) + 
+  geom_density(colour="royalblue2", fill="royalblue2", alpha=0.5) + 
+  theme_bw() + 
+  xlab("Read Position Rank Sum Test") +
+  geom_vline(xintercept = c(-8,8), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-4,4), linetype="longdash", colour ="orangered2") +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+# Post filtering comparisons
+
+
+```{r input_lenient, comment=NA, echo=FALSE}
+data_folder <- "/g/furlong/project/71_F1_parental_genotyping/analysis/GATK_variant_call/quality_filters/"
+
+MQ_SNP_lenient <- read.table(paste0(data_folder, "Mapping_Quality_MQ_SNP_F1_lenient_filtering.txt"))
+MQ_INDEL_lenient <- read.table(paste0(data_folder, "Mapping_Quality_MQ_INDEL_F1_lenient_filtering.txt"))
+
+MQRST_SNP_lenient <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_SNP_F1_lenient_filtering.txt"))
+MQRST_INDEL_lenient <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_INDEL_F1_lenient_filtering.txt"))
+
+QD_SNP_lenient <- read.table(paste0(data_folder, "Quality_By_Depth_QD_SNP_F1_lenient_filtering.txt"))
+QD_INDEL_lenient <- read.table(paste0(data_folder, "Quality_By_Depth_QD_INDEL_F1_lenient_filtering.txt"))
+
+SOR_SNP_lenient <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_SNP_F1_lenient_filtering.txt"))
+SOR_INDEL_lenient <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_INDEL_F1_lenient_filtering.txt"))
+
+FS_SNP_lenient <- read.table(paste0(data_folder, "Fisher_Strand_FS_SNP_F1_lenient_filtering.txt"))
+FS_INDEL_lenient <- read.table(paste0(data_folder, "Fisher_Strand_FS_INDEL_F1_lenient_filtering.txt"))
+
+RST_SNP_lenient <- read.table(paste0(data_folder, "Rank_Sum_Test_SNP_F1_lenient_filtering.txt"))
+RST_INDEL_lenient <- read.table(paste0(data_folder, "Rank_Sum_Test_INDEL_F1_lenient_filtering.txt"))
+```
+
+```{r input_stringent, comment=NA, echo=FALSE}
+data_folder <- "/g/furlong/project/71_F1_parental_genotyping/analysis/GATK_variant_call/quality_filters/"
+
+MQ_SNP_stringent <- read.table(paste0(data_folder, "Mapping_Quality_MQ_SNP_F1_stringent_filtering.txt"))
+MQ_INDEL_stringent <- read.table(paste0(data_folder, "Mapping_Quality_MQ_INDEL_F1_stringent_filtering.txt"))
+
+MQRST_SNP_stringent <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_SNP_F1_stringent_filtering.txt"))
+MQRST_INDEL_stringent <- read.table(paste0(data_folder, "Mapping_Quality_Rank_Sum_INDEL_F1_stringent_filtering.txt"))
+
+QD_SNP_stringent <- read.table(paste0(data_folder, "Quality_By_Depth_QD_SNP_F1_stringent_filtering.txt"))
+QD_INDEL_stringent <- read.table(paste0(data_folder, "Quality_By_Depth_QD_INDEL_F1_stringent_filtering.txt"))
+
+SOR_SNP_stringent <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_SNP_F1_stringent_filtering.txt"))
+SOR_INDEL_stringent <- read.table(paste0(data_folder, "Strand_Odds_Ratio_SOR_INDEL_F1_stringent_filtering.txt"))
+
+FS_SNP_stringent <- read.table(paste0(data_folder, "Fisher_Strand_FS_SNP_F1_stringent_filtering.txt"))
+FS_INDEL_stringent <- read.table(paste0(data_folder, "Fisher_Strand_FS_INDEL_F1_stringent_filtering.txt"))
+
+RST_SNP_stringent <- read.table(paste0(data_folder, "Rank_Sum_Test_SNP_F1_stringent_filtering.txt"))
+RST_INDEL_stringent <- read.table(paste0(data_folder, "Rank_Sum_Test_INDEL_F1_stringent_filtering.txt"))
+```
+
+
+
+## Mapping Quality
+
+```{r MQ_SNP_filtering_stats, comment=NA, echo=FALSE}
+MQ_SNP_lenient_filtered <- subset(MQ_SNP, V5 > 40)
+MQ_SNP_stringent_filtered <- subset(MQ_SNP, V5 > 58)
+```
+
+
+
+### SNP
+
+The total number of variants filtered by MQ for SNP: 
+
+  * lenient: `r nrow(MQ_SNP) - nrow(MQ_SNP_lenient_filtered)` that correspond to: `r (nrow(MQ_SNP) - nrow(MQ_SNP_lenient_filtered)) / nrow(MQ_SNP)*100`%
+  
+  * stringent: `r nrow(MQ_SNP) - nrow(MQ_SNP_stringent_filtered)` that correspond to: `r (nrow(MQ_SNP) - nrow(MQ_SNP_stringent_filtered)) / nrow(MQ_SNP)*100`%
+  
+  
+```{r MQ_INDEL_filtering_stats, comment=NA, echo=FALSE}
+MQ_INDEL_lenient_filtered <- subset(MQ_INDEL, V5 > 40)
+MQ_INDEL_stringent_filtered <- subset(MQ_INDEL, V5 > 58)
+```
+
+```{r MQ_SNP_all, comment=NA, echo=FALSE}
+MQ_SNP$type <- "raw"
+MQ_SNP_lenient$type <- "lenient"
+MQ_SNP_stringent$type <- "stringent"
+MQ_SNP_all <- rbind(MQ_SNP, MQ_SNP_lenient, MQ_SNP_stringent)
+
+ggplot(MQ_SNP_all, aes(V5, fill=type, colour=type)) + 
+   geom_density(alpha=0.2) + 
+   theme_bw() + 
+   xlab("Mapping quality") +
+   geom_vline(xintercept = 40, linetype="longdash", colour ="forestgreen") +
+   geom_vline(xintercept = 58, linetype="longdash", colour ="orangered2") +
+   scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+   scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+   theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by MQ for INDEL: 
+
+  * lenient: `r nrow(MQ_INDEL) - nrow(MQ_INDEL_lenient_filtered)` that correspond to: `r (nrow(MQ_INDEL) - nrow(MQ_INDEL_lenient_filtered)) / nrow(MQ_INDEL) * 100`%
+  
+  * stringent: `r nrow(MQ_INDEL) - nrow(MQ_INDEL_stringent_filtered)` that correspond to: `r (nrow(MQ_INDEL) - nrow(MQ_INDEL_stringent_filtered)) / nrow(MQ_INDEL) * 100`%
+
+```{r MQ_INDEL_all, comment=NA, echo=FALSE}
+MQ_INDEL$type <- "raw"
+MQ_INDEL_lenient$type <- "lenient"
+MQ_INDEL_stringent$type <- "stringent"
+MQ_INDEL_all <- rbind(MQ_INDEL, MQ_INDEL_lenient, MQ_INDEL_stringent)
+
+ggplot(MQ_SNP_all, aes(V5, fill=type, colour=type)) + 
+   geom_density(alpha=0.2) + 
+   theme_bw() + 
+   xlab("Mapping quality") +
+   geom_vline(xintercept = 40, linetype="longdash", colour ="forestgreen") +
+   geom_vline(xintercept = 58, linetype="longdash", colour ="orangered2") +
+   scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+   scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+   theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+## Mapping Quality Rank Sum Test
+
+```{r MQRST_SNP_filtering_stats, comment=NA, echo=FALSE}
+MQRST_SNP_lenient_filtered <- subset(MQRST_SNP, V5 > -12.5 & V5 < 12.5)
+MQRST_SNP_stringent_filtered <- subset(MQRST_SNP, V5 > -2.5 & V5 <2.5)
+```
+
+
+  
+```{r MQRST_INDEL_filtering_stats, comment=NA, echo=FALSE}
+MQRST_INDEL_lenient_filtered <- subset(MQRST_INDEL, V5 > -12.5 & V5 < 12.5)
+MQRST_INDEL_stringent_filtered <- subset(MQRST_INDEL, V5 > -2.5 & V5 <2.5)
+```
+
+
+### SNP
+
+The total number of variants filtered by MQRST for SNP: 
+
+  * lenient: `r nrow(MQRST_SNP) - nrow(MQRST_SNP_lenient_filtered)` that correspond to: `r (nrow(MQRST_SNP) - nrow(MQRST_SNP_lenient_filtered)) / nrow(MQRST_SNP) * 100`%
+  
+  * stringent: `r nrow(MQRST_SNP) - nrow(MQRST_SNP_stringent_filtered)` that correspond to: `r (nrow(MQRST_SNP) - nrow(MQRST_SNP_stringent_filtered)) / nrow(MQRST_SNP) * 100`%
+  
+
+```{r MQRST_SNP_all, comment=NA, echo=FALSE}
+MQRST_SNP$type <- "raw"
+MQRST_SNP_lenient$type <- "lenient"
+MQRST_SNP_stringent$type <- "stringent"
+MQRST_SNP_all <- rbind(MQRST_SNP, MQRST_SNP_lenient, MQRST_SNP_stringent)
+
+ggplot(MQRST_SNP_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Mapping Quality Rank Sum Test") +
+  geom_vline(xintercept = c(-12.5, 12.5), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-2.5,2.5), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by MQRST for INDEL: 
+
+  * lenient: `r nrow(MQRST_INDEL) - nrow(MQRST_INDEL_lenient_filtered)` that correspond to: `r (nrow(MQRST_INDEL) - nrow(MQRST_INDEL_lenient_filtered)) / nrow(MQRST_INDEL) * 100`%
+  
+  * stringent: `r nrow(MQRST_INDEL) - nrow(MQRST_INDEL_stringent_filtered)` that correspond to: `r (nrow(MQRST_INDEL) - nrow(MQRST_INDEL_stringent_filtered)) / nrow(MQRST_INDEL) * 100`%
+
+
+```{r MQRST_INDEL_all, comment=NA, echo=FALSE}
+MQRST_INDEL$type <- "raw"
+MQRST_INDEL_lenient$type <- "lenient"
+MQRST_INDEL_stringent$type <- "stringent"
+MQRST_INDEL_all <- rbind(MQRST_INDEL, MQRST_INDEL_lenient, MQRST_INDEL_stringent)
+
+ggplot(MQRST_INDEL_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Mapping Quality Rank Sum Test") +
+  geom_vline(xintercept = c(-12.5, 12.5), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-2.5,2.5), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Quality by Depth
+
+```{r QD_SNP_filtering_stats, comment=NA, echo=FALSE}
+QD_SNP_lenient_filtered <- subset(QD_SNP, V5 > 2)
+QD_SNP_stringent_filtered <- subset(QD_SNP, V5 > 20)
+```
+  
+```{r QD_INDEL_filtering_stats, comment=NA, echo=FALSE}
+QD_INDEL_lenient_filtered <- subset(QD_INDEL, V5 > 2)
+QD_INDEL_stringent_filtered <- subset(QD_INDEL, V5 > 20)
+```
+
+### SNP
+
+The total number of variants filtered by QD for SNP: 
+
+  * lenient: `r nrow(QD_SNP) - nrow(QD_SNP_lenient_filtered)` that correspond to: `r (nrow(QD_SNP) - nrow(QD_SNP_lenient_filtered)) / nrow(QD_SNP) * 100`%
+  
+  * stringent: `r nrow(QD_SNP) - nrow(QD_SNP_stringent_filtered)` that correspond to: `r (nrow(QD_SNP) - nrow(QD_SNP_stringent_filtered)) / nrow(QD_SNP) * 100`%
+
+```{r QD_SNP_all, comment=NA, echo=FALSE}
+QD_SNP$type <- "raw"
+QD_SNP_lenient$type <- "lenient"
+QD_SNP_stringent$type <- "stringent"
+QD_SNP_all <- rbind(QD_SNP, QD_SNP_lenient, QD_SNP_stringent)
+
+ggplot(QD_SNP_all, aes(V5, fill=type, colour=type)) +  
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Quality By Depth") +
+  geom_vline(xintercept = c(2), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(20), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by QD for SNP: 
+
+  * lenient: `r nrow(QD_INDEL) - nrow(QD_INDEL_lenient_filtered)` that correspond to: `r (nrow(QD_INDEL) - nrow(QD_INDEL_lenient_filtered)) / nrow(QD_INDEL) * 100`%
+  
+  * stringent: `r nrow(QD_INDEL) - nrow(QD_INDEL_stringent_filtered)` that correspond to: `r (nrow(QD_INDEL) - nrow(QD_INDEL_stringent_filtered)) / nrow(QD_INDEL) * 100`%
+
+```{r QD_INDEL_all, comment=NA, echo=FALSE}
+QD_INDEL$type <- "raw"
+QD_INDEL_lenient$type <- "lenient"
+QD_INDEL_stringent$type <- "stringent"
+QD_INDEL_all <- rbind(QD_INDEL, QD_INDEL_lenient, QD_INDEL_stringent)
+
+ggplot(QD_INDEL_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Quality By Depth") +
+  geom_vline(xintercept = c(2), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(20), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Strand Odds Ratio
+
+```{r SOR_SNP_filtering_stats, comment=NA, echo=FALSE}
+SOR_SNP_lenient_filtered <- subset(SOR_SNP, V5 < 3)
+SOR_SNP_stringent_filtered <- subset(SOR_SNP, V5 < 1.5)
+```
+  
+```{r SOR_INDEL_filtering_stats, comment=NA, echo=FALSE}
+SOR_INDEL_lenient_filtered <- subset(SOR_INDEL, V5 < 3)
+SOR_INDEL_stringent_filtered <- subset(SOR_INDEL, V5 < 1.5)
+```
+
+
+### SNP
+
+The total number of variants filtered by SOR for SNP: 
+
+  * lenient: `r nrow(SOR_SNP) - nrow(SOR_SNP_lenient_filtered)` that correspond to: `r (nrow(SOR_SNP) - nrow(SOR_SNP_lenient_filtered)) / nrow(SOR_SNP) * 100`%
+  
+  * stringent: `r nrow(SOR_SNP) - nrow(SOR_SNP_stringent_filtered)` that correspond to: `r (nrow(SOR_SNP) - nrow(SOR_SNP_stringent_filtered)) / nrow(SOR_SNP) * 100`%
+
+
+```{r SOR_SNP_all, comment=NA, echo=FALSE}
+SOR_SNP$type <- "raw"
+SOR_SNP_lenient$type <- "lenient"
+SOR_SNP_stringent$type <- "stringent"
+SOR_SNP_all <- rbind(SOR_SNP, SOR_SNP_lenient, SOR_SNP_stringent)
+
+ggplot(SOR_SNP_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Strand Odds Ratio") +
+  geom_vline(xintercept = c(3), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(1.5), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by SOR for INDEL: 
+
+  * lenient: `r nrow(SOR_INDEL) - nrow(SOR_INDEL_lenient_filtered)` that correspond to: `r (nrow(SOR_INDEL) - nrow(SOR_INDEL_lenient_filtered)) / nrow(SOR_INDEL) * 100`%
+  
+  * stringent: `r nrow(SOR_INDEL) - nrow(SOR_INDEL_stringent_filtered)` that correspond to: `r (nrow(SOR_INDEL) - nrow(SOR_INDEL_stringent_filtered)) / nrow(SOR_INDEL) * 100`%
+
+```{r SOR_INDEL_all, comment=NA, echo=FALSE}
+SOR_INDEL$type <- "raw"
+SOR_INDEL_lenient$type <- "lenient"
+SOR_INDEL_stringent$type <- "stringent"
+SOR_INDEL_all <- rbind(SOR_INDEL, SOR_INDEL_lenient, SOR_INDEL_stringent)
+
+ggplot(SOR_INDEL_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  theme_bw() + 
+  xlab("Strand Odds Ratio") +
+  geom_vline(xintercept = c(3), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(1.5), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## FisherTest Strand
+
+```{r FS_SNP_filtering_stats, comment=NA, echo=FALSE}
+FS_SNP_lenient_filtered <- subset(FS_SNP, V5 < 60)
+FS_SNP_stringent_filtered <- subset(FS_SNP, V5 < 10)
+```
+  
+```{r FS_INDEL_filtering_stats, comment=NA, echo=FALSE}
+FS_INDEL_lenient_filtered <- subset(FS_INDEL, V5 < 60)
+FS_INDEL_stringent_filtered <- subset(FS_INDEL, V5 < 10)
+```
+
+### SNP
+
+The total number of variants filtered by FS for SNP: 
+
+  * lenient: `r nrow(FS_SNP) - nrow(FS_SNP_lenient_filtered)` that correspond to: `r (nrow(FS_SNP) - nrow(FS_SNP_lenient_filtered)) / nrow(FS_SNP) * 100`%
+  
+  * stringent: `r nrow(FS_SNP) - nrow(FS_SNP_stringent_filtered)` that correspond to: `r (nrow(FS_SNP) - nrow(FS_SNP_stringent_filtered)) / nrow(FS_SNP) * 100`%
+
+```{r FS_SNP_all, comment=NA, echo=FALSE}
+FS_SNP$type <- "raw"
+FS_SNP_lenient$type <- "lenient"
+FS_SNP_stringent$type <- "stringent"
+FS_SNP_all <- rbind(FS_SNP, FS_SNP_lenient, FS_SNP_stringent)
+
+ggplot(FS_SNP_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +
+  scale_x_continuous(trans='log10') +
+  theme_bw() + 
+  xlab("FisherTest Strand") +
+  geom_vline(xintercept = c(60), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(10), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by FS for SNP: 
+
+  * lenient: `r nrow(FS_INDEL) - nrow(FS_SNP_lenient_filtered)` that correspond to: `r (nrow(FS_INDEL) - nrow(FS_INDEL_lenient_filtered)) / nrow(FS_INDEL) * 100`%
+  
+  * stringent: `r nrow(FS_INDEL) - nrow(FS_INDEL_stringent_filtered)` that correspond to: `r (nrow(FS_INDEL) - nrow(FS_INDEL_stringent_filtered)) / nrow(FS_INDEL) * 100`%
+
+```{r FS_INDEL_all, comment=NA, echo=FALSE}
+FS_INDEL$type <- "raw"
+FS_INDEL_lenient$type <- "lenient"
+FS_INDEL_stringent$type <- "stringent"
+FS_INDEL_all <- rbind(FS_INDEL, FS_INDEL_lenient, FS_INDEL_stringent)
+
+ggplot(FS_INDEL_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) + 
+  scale_x_continuous(trans='log10') +
+  theme_bw() + 
+  xlab("FisherTest Strand") +
+  geom_vline(xintercept = c(60), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(10), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+## Read Position Rank Sum Test
+
+```{r RST_SNP_filtering_stats, comment=NA, echo=FALSE}
+RST_SNP_lenient_filtered <- subset(RST_SNP, V5 > -8 & V5 < 8)
+RST_SNP_stringent_filtered <- subset(RST_SNP, V5 > -4 & V5 < 4)
+```
+  
+```{r RST_INDEL_filtering_stats, comment=NA, echo=FALSE}
+RST_INDEL_lenient_filtered <- subset(RST_INDEL, V5 > -8 & V5 < 8)
+RST_INDEL_stringent_filtered <- subset(RST_INDEL, V5 > -4 & V5 < 4)
+```
+
+### SNP
+
+The total number of variants filtered by RST for SNP: 
+
+  * lenient: `r nrow(RST_SNP) - nrow(RST_SNP_lenient_filtered)` that correspond to: `r (nrow(RST_SNP) - nrow(RST_SNP_lenient_filtered)) / nrow(RST_SNP) * 100`%
+  
+  * stringent: `r nrow(RST_SNP) - nrow(RST_SNP_stringent_filtered)` that correspond to: `r (nrow(RST_SNP) - nrow(RST_SNP_stringent_filtered)) / nrow(RST_SNP) * 100`%
+
+```{r RST_SNP_all, comment=NA, echo=FALSE}
+RST_SNP$type <- "raw"
+RST_SNP_lenient$type <- "lenient"
+RST_SNP_stringent$type <- "stringent"
+RST_SNP_all <- rbind(RST_SNP, RST_SNP_lenient, RST_SNP_stringent)
+
+ggplot(RST_SNP_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) + 
+  theme_bw() + 
+  xlab("Read Position Rank Sum Test") +
+  geom_vline(xintercept = c(-8,8), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-4,4), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+### INDEL
+
+The total number of variants filtered by RST for SNP: 
+
+  * lenient: `r nrow(RST_INDEL) - nrow(RST_INDEL_lenient_filtered)` that correspond to: `r (nrow(RST_INDEL) - nrow(RST_INDEL_lenient_filtered)) / nrow(RST_INDEL) * 100`%
+  
+  * stringent: `r nrow(RST_INDEL) - nrow(RST_INDEL_stringent_filtered)` that correspond to: `r (nrow(RST_INDEL) - nrow(RST_INDEL_stringent_filtered)) / nrow(RST_INDEL) * 100`%
+
+```{r RST_INDEL_all, comment=NA, echo=FALSE}
+RST_INDEL$type <- "raw"
+RST_INDEL_lenient$type <- "lenient"
+RST_INDEL_stringent$type <- "stringent"
+RST_INDEL_all <- rbind(RST_INDEL, RST_INDEL_lenient, RST_INDEL_stringent)
+
+ggplot(RST_INDEL_all, aes(V5, fill=type, colour=type)) + 
+  geom_density(alpha=0.2) +  
+  theme_bw() + 
+  xlab("Read Position Rank Sum Test") +
+  geom_vline(xintercept = c(-8,8), linetype="longdash", colour ="forestgreen") +
+  geom_vline(xintercept = c(-4,4), linetype="longdash", colour ="orangered2") +
+  scale_fill_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  scale_colour_manual(values = c("forestgreen", "royalblue2", "orangered2")) +
+  theme(axis.text.x = element_text(size = 15, colour = "black"), axis.text.y = element_text(size = 15), axis.title = element_text(size = 15))
+```
+
+
+

@@ -1,0 +1,196 @@
+# Global
+DMEL_GENOME = config["global"]["dmel_genome"]
+WOLBACHIA_GENOME = config["global"]["wolbachia_genome"]
+DGRP_VCF = config["global"]["DGRP_vcf"]
+
+# Paths
+FASTQ_DIR = config["paths"]["fastq"]
+FASTQC_DIR = config["paths"]["fastqc"]
+MULTIQC_DIR = config["paths"]["multiqc"]
+TRIMFQ_DIR = config["paths"]["trimfq"]
+MAPQC_DIR = config["paths"]["mapqc"]
+JOINT_GENOME_DIR = config["paths"]["joint_genome"]
+MAPPING_SCRATCH_DIR = config["paths"]["mapping_scratch"]
+
+# Tools
+FASTQC = config["tools"]["fastqc"]
+MULTIQC = config["tools"]["multiqc"]
+TRIMGALORE = config["tools"]["trimgalore"]
+BWA = config["tools"]["bwa"]
+SAMTOOLS = config["tools"]["samtools"]
+PICARD = config["tools"]["picard"]
+GATK = config["tools"]["gatk"]
+
+# Variables
+FASTQ_WILDCARD_BASENAME, = glob_wildcards("/g/furlong/project/71_F1_parental_genotyping/data/fastq/parental_F1_{fastq_name}_1.fastq.gz")
+FASTQ_WILDCARD = ["parental_F1_" + n for n in FASTQ_WILDCARD_BASENAME]
+PAIR = ['1', '2']
+#### Debug
+#FASTQ_WILDCARD = ["parental_F1_DGRP-399"]
+##########
+
+
+# Targets
+TRIMMED_OUTPUT = expand("{path}/{fastq_name}_1_val_1.fq.gz", path=TRIMFQ_DIR, fastq_name=FASTQ_WILDCARD)
+MAPPING_OUTPUT = expand("{path}/{fastq_name}_trimmed.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+SORT_OUTPUT = expand("{path}/{fastq_name}_trimmed_sorted.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+MARKDUPLICATES_OUTPUT = expand("{path}/{fastq_name}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+RMDUP_OUTPUT = expand("{path}/{fastq_name}_trimmed_rmduplicates.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+ANNOTATED_OUTPUT = expand("{path}/{fastq_name}_trimmed_rmduplicates_annot.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+RECALIBRATION_OUTPUT = expand("{path}/{fastq_name}_BQSR_model", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+BQSR_OUTPUT = expand("{path}/{fastq_name}_trimmed_rmduplicates_annot_BQSR.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+RECALIBRATION_CSV_OUTPUT = expand("{path}/{fastq_name}_BQSR_model.csv", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+
+#rule echo:
+#	shell:
+#		"echo {TRIMMED_OUTPUT}"
+
+rule all:
+	input:
+		TRIMMED_OUTPUT, MAPPING_OUTPUT, SORT_OUTPUT, MARKDUPLICATES_OUTPUT, RMDUP_OUTPUT, ANNOTATED_OUTPUT, RECALIBRATION_OUTPUT, BQSR_OUTPUT, RECALIBRATION_CSV_OUTPUT
+
+rule trim:
+	input:
+		fq_1 = expand("{path}/{{fastq_name}}_1.fastq.gz", path=FASTQ_DIR),
+		fq_2 = expand("{path}/{{fastq_name}}_2.fastq.gz", path=FASTQ_DIR)
+	output:
+		trimmed_1 = expand("{path}/{{fastq_name}}_1_val_1.fq.gz", path=TRIMFQ_DIR),
+		trimmed_2 = expand("{path}/{{fastq_name}}_2_val_2.fq.gz", path=TRIMFQ_DIR)
+	params:
+		min_quality = 30,
+		lenght = 75
+	shell:
+		"""
+		{TRIMGALORE} \
+		-q {params.min_quality} --phred33 --fastqc --illumina --length {params.lenght} --paired \
+		-o {TRIMFQ_DIR} \
+		{input.fq_1} {input.fq_2}
+		"""
+
+rule join_genomes:
+	input:
+		drosophila = DMEL_GENOME,
+		wolbachia = WOLBACHIA_GENOME
+	output:
+		expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	shell:
+		"""
+		cat {input.wolbachia} {input.drosophila} > {output}
+		"""
+
+rule index_joint_genome:
+	input:
+		expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		expand("{path}/dm6.AE017196.fasta.bwt", path=JOINT_GENOME_DIR)
+	shell:
+		"""
+		cd {JOINT_GENOME_DIR};
+		{BWA} index dm6.AE017196.fasta
+		"""
+
+rule map:
+	input:
+		fq1 = expand("{path}/{{fastq_name}}_1_val_1.fq.gz", path=TRIMFQ_DIR),
+		fq2 = expand("{path}/{{fastq_name}}_2_val_2.fq.gz", path=TRIMFQ_DIR),
+		index = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed.bam", path=MAPPING_SCRATCH_DIR)	
+	threads: 8
+	params:
+		mapping_quality = 20
+	shell:
+		"""
+		{BWA} mem -t {threads} -T {params.mapping_quality} -o {output}.temp.sam {input.index} {input.fq1} {input.fq2}
+		{SAMTOOLS} view -Sb -@ {threads} -o {output} {output}.temp.sam
+		rm {output}.temp.sam
+		"""
+
+rule sort_index:
+	input:
+		expand("{path}/{{fastq_name}}_trimmed.bam", path=MAPPING_SCRATCH_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_sorted.bam", path=MAPPING_SCRATCH_DIR)
+	threads: 8
+	shell:
+		"""
+		{SAMTOOLS} sort -o {output} {input}
+		{SAMTOOLS} index {output}
+		"""
+
+rule mark_duplicates:
+	input:
+		expand("{path}/{{fastq_name}}_trimmed_sorted.bam", path=MAPPING_SCRATCH_DIR)
+	output:
+		bam = expand("{path}/{{fastq_name}}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR),
+		metrics = expand("{path}/{{fastq_name}}_trimmed_markduplicates.metrics.txt", path=MAPPING_SCRATCH_DIR)
+	params:
+		stringency = "VALIDATION_STRINGENCY=LENIENT"
+	shell:
+		"""
+		{PICARD} MarkDuplicates {params.stringency} I={input} O={output.bam} M={output.metrics}
+		{SAMTOOLS} index {output.bam}
+		"""
+
+rule remove_duplicates:
+	input:
+		expand("{path}/{{fastq_name}}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR),
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates.bam", path=MAPPING_SCRATCH_DIR),
+	shell:
+		"""
+		{SAMTOOLS} view -O BAM -F 1548 -f3 -o {output} {input};
+                {SAMTOOLS} index {output}
+		"""
+
+rule annotated_bam:
+	input:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates.bam", path=MAPPING_SCRATCH_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot.bam", path=MAPPING_SCRATCH_DIR)
+	shell:
+		"""
+		LINE=`echo {wildcards.fastq_name} | sed 's/_/\\t/g' | cut -f3`
+		{PICARD} AddOrReplaceReadGroups INPUT={input} OUTPUT={output} RGID=$LINE RGLB=$LINE RGPL=illumina RGPU=$LINE RGSM=$LINE RGCN=GeneCore
+		{SAMTOOLS} index {output}
+		"""
+
+
+############################
+# Base quality recalibration
+############################
+
+
+rule base_recalibration:
+	input:
+		bam = expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot.bam", path=MAPPING_SCRATCH_DIR),
+		vcf = {DGRP_VCF},
+		ref = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_BQSR_model", path=MAPPING_SCRATCH_DIR)
+	shell:
+		"""
+		{GATK} BaseRecalibrator --input={input.bam} --known-sites={DGRP_VCF} --output={output} --reference={input.ref}
+		"""
+
+rule apply_recalibration:
+	input:
+		bam = expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot.bam", path=MAPPING_SCRATCH_DIR),
+		model = expand("{path}/{{fastq_name}}_BQSR_model", path=MAPPING_SCRATCH_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot_BQSR.bam", path=MAPPING_SCRATCH_DIR)
+	shell:
+		"""
+		{GATK} ApplyBQSR --input={input.bam} --bqsr-recal-file={input.model} --output={output}
+		{SAMTOOLS} index {output}
+		"""
+rule analyze_covariates:
+	input:
+		expand("{path}/{{fastq_name}}_BQSR_model", path=MAPPING_SCRATCH_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_BQSR_model.csv", path=MAPPING_SCRATCH_DIR)
+	shell:
+		"""
+		{GATK} AnalyzeCovariates -bqsr {input} -csv {output}
+		"""
+

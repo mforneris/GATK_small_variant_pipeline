@@ -1,0 +1,619 @@
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	mark_duplicates
+	2
+
+rule mark_duplicates:
+    input: /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_sorted.bam
+    output: /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_markduplicates.metrics.txt
+    jobid: 34
+    wildcards: fastq_name=parental_F1_DGRP-399
+
+17:30:31.126 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/g/funcgen/gbcs/public/software/conda/envs/picard-2.16.0/share/picard-2.16.0-0/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Wed Jan 30 17:30:31 CET 2019] MarkDuplicates INPUT=[/scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_sorted.bam] OUTPUT=/scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_markduplicates.bam METRICS_FILE=/scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_markduplicates.metrics.txt VALIDATION_STRINGENCY=LENIENT    MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=50000 MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=8000 SORTING_COLLECTION_SIZE_RATIO=0.25 TAG_DUPLICATE_SET_MEMBERS=false REMOVE_SEQUENCING_DUPLICATES=false TAGGING_POLICY=DontTag CLEAR_DT=true ADD_PG_TAG_TO_READS=true REMOVE_DUPLICATES=false ASSUME_SORTED=false DUPLICATE_SCORING_STRATEGY=SUM_OF_BASE_QUALITIES PROGRAM_RECORD_ID=MarkDuplicates PROGRAM_GROUP_NAME=MarkDuplicates READ_NAME_REGEX=<optimized capture of last three ':' separated fields as numeric values> OPTICAL_DUPLICATE_PIXEL_DISTANCE=100 MAX_OPTICAL_DUPLICATE_SET_SIZE=300000 VERBOSITY=INFO QUIET=false COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Wed Jan 30 17:30:31 CET 2019] Executing as forneris@seneca.embl.de on Linux 3.10.0-957.1.3.el7.x86_64 amd64; OpenJDK 64-Bit Server VM 1.8.0_121-b15; Deflater: Intel; Inflater: Intel; Picard version: 2.16.0-SNAPSHOT
+INFO	2019-01-30 17:30:31	MarkDuplicates	Start of doWork freeMemory: 503134968; totalMemory: 514850816; maxMemory: 954728448
+INFO	2019-01-30 17:30:31	MarkDuplicates	Reading input file and constructing read end information.
+INFO	2019-01-30 17:30:31	MarkDuplicates	Will retain up to 3459161 data points before spilling to disk.
+INFO	2019-01-30 17:30:38	MarkDuplicates	Read     1,000,000 records.  Elapsed time: 00:00:07s.  Time for last 1,000,000:    7s.  Last read position: chr2L:1,694,363
+INFO	2019-01-30 17:30:38	MarkDuplicates	Tracking 6046 as yet unmatched pairs. 903 records in RAM.
+INFO	2019-01-30 17:30:45	MarkDuplicates	Read     2,000,000 records.  Elapsed time: 00:00:14s.  Time for last 1,000,000:    6s.  Last read position: chr2L:3,358,016
+INFO	2019-01-30 17:30:45	MarkDuplicates	Tracking 11365 as yet unmatched pairs. 1758 records in RAM.
+INFO	2019-01-30 17:30:55	MarkDuplicates	Read     3,000,000 records.  Elapsed time: 00:00:23s.  Time for last 1,000,000:    9s.  Last read position: chr2L:5,041,665
+INFO	2019-01-30 17:30:55	MarkDuplicates	Tracking 16650 as yet unmatched pairs. 2313 records in RAM.
+INFO	2019-01-30 17:31:04	MarkDuplicates	Read     4,000,000 records.  Elapsed time: 00:00:33s.  Time for last 1,000,000:    9s.  Last read position: chr2L:6,683,172
+INFO	2019-01-30 17:31:04	MarkDuplicates	Tracking 20353 as yet unmatched pairs. 2731 records in RAM.
+INFO	2019-01-30 17:31:14	MarkDuplicates	Read     5,000,000 records.  Elapsed time: 00:00:42s.  Time for last 1,000,000:    9s.  Last read position: chr2L:8,278,712
+INFO	2019-01-30 17:31:14	MarkDuplicates	Tracking 24811 as yet unmatched pairs. 3193 records in RAM.
+INFO	2019-01-30 17:31:24	MarkDuplicates	Read     6,000,000 records.  Elapsed time: 00:00:53s.  Time for last 1,000,000:   10s.  Last read position: chr2L:9,846,271
+INFO	2019-01-30 17:31:24	MarkDuplicates	Tracking 29569 as yet unmatched pairs. 3483 records in RAM.
+INFO	2019-01-30 17:31:32	MarkDuplicates	Read     7,000,000 records.  Elapsed time: 00:01:01s.  Time for last 1,000,000:    8s.  Last read position: chr2L:11,431,150
+INFO	2019-01-30 17:31:32	MarkDuplicates	Tracking 35358 as yet unmatched pairs. 3803 records in RAM.
+INFO	2019-01-30 17:31:44	MarkDuplicates	Read     8,000,000 records.  Elapsed time: 00:01:13s.  Time for last 1,000,000:   12s.  Last read position: chr2L:13,033,131
+INFO	2019-01-30 17:31:44	MarkDuplicates	Tracking 41746 as yet unmatched pairs. 4125 records in RAM.
+INFO	2019-01-30 17:31:52	MarkDuplicates	Read     9,000,000 records.  Elapsed time: 00:01:20s.  Time for last 1,000,000:    7s.  Last read position: chr2L:14,580,803
+INFO	2019-01-30 17:31:52	MarkDuplicates	Tracking 46958 as yet unmatched pairs. 4181 records in RAM.
+INFO	2019-01-30 17:31:59	MarkDuplicates	Read    10,000,000 records.  Elapsed time: 00:01:27s.  Time for last 1,000,000:    7s.  Last read position: chr2L:16,238,149
+INFO	2019-01-30 17:31:59	MarkDuplicates	Tracking 53138 as yet unmatched pairs. 3954 records in RAM.
+INFO	2019-01-30 17:32:08	MarkDuplicates	Read    11,000,000 records.  Elapsed time: 00:01:37s.  Time for last 1,000,000:    9s.  Last read position: chr2L:17,896,725
+INFO	2019-01-30 17:32:08	MarkDuplicates	Tracking 58446 as yet unmatched pairs. 3599 records in RAM.
+INFO	2019-01-30 17:32:14	MarkDuplicates	Read    12,000,000 records.  Elapsed time: 00:01:43s.  Time for last 1,000,000:    6s.  Last read position: chr2L:19,532,878
+INFO	2019-01-30 17:32:14	MarkDuplicates	Tracking 62436 as yet unmatched pairs. 3243 records in RAM.
+INFO	2019-01-30 17:32:23	MarkDuplicates	Read    13,000,000 records.  Elapsed time: 00:01:51s.  Time for last 1,000,000:    8s.  Last read position: chr2L:21,123,210
+INFO	2019-01-30 17:32:23	MarkDuplicates	Tracking 71336 as yet unmatched pairs. 2189 records in RAM.
+INFO	2019-01-30 17:32:29	MarkDuplicates	Read    14,000,000 records.  Elapsed time: 00:01:57s.  Time for last 1,000,000:    6s.  Last read position: chr2L:22,280,091
+INFO	2019-01-30 17:32:29	MarkDuplicates	Tracking 78511 as yet unmatched pairs. 1453 records in RAM.
+INFO	2019-01-30 17:32:40	MarkDuplicates	Read    15,000,000 records.  Elapsed time: 00:02:09s.  Time for last 1,000,000:   11s.  Last read position: chr2R:377,243
+INFO	2019-01-30 17:32:40	MarkDuplicates	Tracking 106922 as yet unmatched pairs. 23105 records in RAM.
+INFO	2019-01-30 17:32:47	MarkDuplicates	Read    16,000,000 records.  Elapsed time: 00:02:16s.  Time for last 1,000,000:    6s.  Last read position: chr2R:2,110,764
+INFO	2019-01-30 17:32:47	MarkDuplicates	Tracking 146765 as yet unmatched pairs. 24586 records in RAM.
+INFO	2019-01-30 17:32:54	MarkDuplicates	Read    17,000,000 records.  Elapsed time: 00:02:22s.  Time for last 1,000,000:    6s.  Last read position: chr2R:3,809,559
+INFO	2019-01-30 17:32:54	MarkDuplicates	Tracking 162743 as yet unmatched pairs. 23873 records in RAM.
+INFO	2019-01-30 17:33:03	MarkDuplicates	Read    18,000,000 records.  Elapsed time: 00:02:32s.  Time for last 1,000,000:    9s.  Last read position: chr2R:5,274,439
+INFO	2019-01-30 17:33:03	MarkDuplicates	Tracking 174687 as yet unmatched pairs. 19924 records in RAM.
+INFO	2019-01-30 17:33:10	MarkDuplicates	Read    19,000,000 records.  Elapsed time: 00:02:39s.  Time for last 1,000,000:    6s.  Last read position: chr2R:6,818,961
+INFO	2019-01-30 17:33:10	MarkDuplicates	Tracking 181664 as yet unmatched pairs. 17038 records in RAM.
+INFO	2019-01-30 17:33:16	MarkDuplicates	Read    20,000,000 records.  Elapsed time: 00:02:45s.  Time for last 1,000,000:    6s.  Last read position: chr2R:8,475,534
+INFO	2019-01-30 17:33:16	MarkDuplicates	Tracking 185524 as yet unmatched pairs. 15905 records in RAM.
+INFO	2019-01-30 17:33:23	MarkDuplicates	Read    21,000,000 records.  Elapsed time: 00:02:52s.  Time for last 1,000,000:    6s.  Last read position: chr2R:10,123,618
+INFO	2019-01-30 17:33:23	MarkDuplicates	Tracking 188962 as yet unmatched pairs. 15318 records in RAM.
+INFO	2019-01-30 17:33:36	MarkDuplicates	Read    22,000,000 records.  Elapsed time: 00:03:04s.  Time for last 1,000,000:   12s.  Last read position: chr2R:11,500,177
+INFO	2019-01-30 17:33:36	MarkDuplicates	Tracking 200677 as yet unmatched pairs. 12837 records in RAM.
+INFO	2019-01-30 17:33:42	MarkDuplicates	Read    23,000,000 records.  Elapsed time: 00:03:11s.  Time for last 1,000,000:    6s.  Last read position: chr2R:13,123,294
+INFO	2019-01-30 17:33:42	MarkDuplicates	Tracking 202859 as yet unmatched pairs. 11821 records in RAM.
+INFO	2019-01-30 17:33:50	MarkDuplicates	Read    24,000,000 records.  Elapsed time: 00:03:19s.  Time for last 1,000,000:    7s.  Last read position: chr2R:14,775,959
+INFO	2019-01-30 17:33:50	MarkDuplicates	Tracking 205630 as yet unmatched pairs. 10421 records in RAM.
+INFO	2019-01-30 17:33:58	MarkDuplicates	Read    25,000,000 records.  Elapsed time: 00:03:26s.  Time for last 1,000,000:    7s.  Last read position: chr2R:16,441,238
+INFO	2019-01-30 17:33:58	MarkDuplicates	Tracking 208175 as yet unmatched pairs. 8960 records in RAM.
+INFO	2019-01-30 17:34:06	MarkDuplicates	Read    26,000,000 records.  Elapsed time: 00:03:34s.  Time for last 1,000,000:    7s.  Last read position: chr2R:18,046,612
+INFO	2019-01-30 17:34:06	MarkDuplicates	Tracking 210571 as yet unmatched pairs. 7435 records in RAM.
+INFO	2019-01-30 17:34:12	MarkDuplicates	Read    27,000,000 records.  Elapsed time: 00:03:41s.  Time for last 1,000,000:    6s.  Last read position: chr2R:19,685,610
+INFO	2019-01-30 17:34:12	MarkDuplicates	Tracking 213347 as yet unmatched pairs. 5854 records in RAM.
+INFO	2019-01-30 17:34:19	MarkDuplicates	Read    28,000,000 records.  Elapsed time: 00:03:48s.  Time for last 1,000,000:    7s.  Last read position: chr2R:21,309,378
+INFO	2019-01-30 17:34:19	MarkDuplicates	Tracking 215128 as yet unmatched pairs. 4182 records in RAM.
+INFO	2019-01-30 17:34:33	MarkDuplicates	Read    29,000,000 records.  Elapsed time: 00:04:02s.  Time for last 1,000,000:   14s.  Last read position: chr2R:22,984,164
+INFO	2019-01-30 17:34:33	MarkDuplicates	Tracking 217420 as yet unmatched pairs. 2422 records in RAM.
+INFO	2019-01-30 17:34:40	MarkDuplicates	Read    30,000,000 records.  Elapsed time: 00:04:08s.  Time for last 1,000,000:    6s.  Last read position: chr2R:24,724,395
+INFO	2019-01-30 17:34:40	MarkDuplicates	Tracking 219215 as yet unmatched pairs. 916 records in RAM.
+INFO	2019-01-30 17:34:49	MarkDuplicates	Read    31,000,000 records.  Elapsed time: 00:04:18s.  Time for last 1,000,000:    9s.  Last read position: chr3L:1,019,164
+INFO	2019-01-30 17:34:49	MarkDuplicates	Tracking 224151 as yet unmatched pairs. 55640 records in RAM.
+INFO	2019-01-30 17:35:02	MarkDuplicates	Read    32,000,000 records.  Elapsed time: 00:04:30s.  Time for last 1,000,000:   12s.  Last read position: chr3L:2,680,821
+INFO	2019-01-30 17:35:02	MarkDuplicates	Tracking 225561 as yet unmatched pairs. 55073 records in RAM.
+INFO	2019-01-30 17:35:08	MarkDuplicates	Read    33,000,000 records.  Elapsed time: 00:04:37s.  Time for last 1,000,000:    6s.  Last read position: chr3L:4,326,564
+INFO	2019-01-30 17:35:08	MarkDuplicates	Tracking 226800 as yet unmatched pairs. 54389 records in RAM.
+INFO	2019-01-30 17:35:15	MarkDuplicates	Read    34,000,000 records.  Elapsed time: 00:04:43s.  Time for last 1,000,000:    6s.  Last read position: chr3L:5,992,013
+INFO	2019-01-30 17:35:15	MarkDuplicates	Tracking 228659 as yet unmatched pairs. 53366 records in RAM.
+INFO	2019-01-30 17:35:22	MarkDuplicates	Read    35,000,000 records.  Elapsed time: 00:04:50s.  Time for last 1,000,000:    6s.  Last read position: chr3L:7,650,674
+INFO	2019-01-30 17:35:22	MarkDuplicates	Tracking 230287 as yet unmatched pairs. 52168 records in RAM.
+INFO	2019-01-30 17:35:36	MarkDuplicates	Read    36,000,000 records.  Elapsed time: 00:05:05s.  Time for last 1,000,000:   14s.  Last read position: chr3L:9,083,867
+INFO	2019-01-30 17:35:36	MarkDuplicates	Tracking 231937 as yet unmatched pairs. 50979 records in RAM.
+INFO	2019-01-30 17:35:52	MarkDuplicates	Read    37,000,000 records.  Elapsed time: 00:05:20s.  Time for last 1,000,000:   15s.  Last read position: chr3L:10,690,759
+INFO	2019-01-30 17:35:52	MarkDuplicates	Tracking 233227 as yet unmatched pairs. 48906 records in RAM.
+INFO	2019-01-30 17:35:59	MarkDuplicates	Read    38,000,000 records.  Elapsed time: 00:05:27s.  Time for last 1,000,000:    7s.  Last read position: chr3L:12,267,347
+INFO	2019-01-30 17:35:59	MarkDuplicates	Tracking 234400 as yet unmatched pairs. 47035 records in RAM.
+INFO	2019-01-30 17:36:08	MarkDuplicates	Read    39,000,000 records.  Elapsed time: 00:05:36s.  Time for last 1,000,000:    8s.  Last read position: chr3L:13,911,921
+INFO	2019-01-30 17:36:08	MarkDuplicates	Tracking 235880 as yet unmatched pairs. 45241 records in RAM.
+INFO	2019-01-30 17:36:15	MarkDuplicates	Read    40,000,000 records.  Elapsed time: 00:05:44s.  Time for last 1,000,000:    7s.  Last read position: chr3L:15,463,364
+INFO	2019-01-30 17:36:15	MarkDuplicates	Tracking 236811 as yet unmatched pairs. 43656 records in RAM.
+INFO	2019-01-30 17:36:22	MarkDuplicates	Read    41,000,000 records.  Elapsed time: 00:05:50s.  Time for last 1,000,000:    6s.  Last read position: chr3L:17,027,377
+INFO	2019-01-30 17:36:22	MarkDuplicates	Tracking 237860 as yet unmatched pairs. 41742 records in RAM.
+INFO	2019-01-30 17:36:29	MarkDuplicates	Read    42,000,000 records.  Elapsed time: 00:05:57s.  Time for last 1,000,000:    7s.  Last read position: chr3L:18,611,281
+INFO	2019-01-30 17:36:29	MarkDuplicates	Tracking 238852 as yet unmatched pairs. 39466 records in RAM.
+INFO	2019-01-30 17:36:45	MarkDuplicates	Read    43,000,000 records.  Elapsed time: 00:06:14s.  Time for last 1,000,000:   16s.  Last read position: chr3L:19,965,401
+INFO	2019-01-30 17:36:45	MarkDuplicates	Tracking 241172 as yet unmatched pairs. 33174 records in RAM.
+INFO	2019-01-30 17:36:53	MarkDuplicates	Read    44,000,000 records.  Elapsed time: 00:06:22s.  Time for last 1,000,000:    7s.  Last read position: chr3L:21,551,094
+INFO	2019-01-30 17:36:53	MarkDuplicates	Tracking 242249 as yet unmatched pairs. 30615 records in RAM.
+INFO	2019-01-30 17:37:02	MarkDuplicates	Read    45,000,000 records.  Elapsed time: 00:06:30s.  Time for last 1,000,000:    8s.  Last read position: chr3L:23,152,302
+INFO	2019-01-30 17:37:02	MarkDuplicates	Tracking 244302 as yet unmatched pairs. 28066 records in RAM.
+INFO	2019-01-30 17:37:14	MarkDuplicates	Read    46,000,000 records.  Elapsed time: 00:06:42s.  Time for last 1,000,000:   11s.  Last read position: chr3L:24,837,982
+INFO	2019-01-30 17:37:14	MarkDuplicates	Tracking 251769 as yet unmatched pairs. 20560 records in RAM.
+INFO	2019-01-30 17:37:21	MarkDuplicates	Read    47,000,000 records.  Elapsed time: 00:06:50s.  Time for last 1,000,000:    7s.  Last read position: chr3L:26,581,145
+INFO	2019-01-30 17:37:21	MarkDuplicates	Tracking 254923 as yet unmatched pairs. 12680 records in RAM.
+INFO	2019-01-30 17:37:30	MarkDuplicates	Read    48,000,000 records.  Elapsed time: 00:06:59s.  Time for last 1,000,000:    9s.  Last read position: chr3R:432,498
+INFO	2019-01-30 17:37:30	MarkDuplicates	Tracking 265797 as yet unmatched pairs. 90902 records in RAM.
+INFO	2019-01-30 17:37:37	MarkDuplicates	Read    49,000,000 records.  Elapsed time: 00:07:06s.  Time for last 1,000,000:    7s.  Last read position: chr3R:2,583,408
+INFO	2019-01-30 17:37:37	MarkDuplicates	Tracking 263843 as yet unmatched pairs. 77695 records in RAM.
+INFO	2019-01-30 17:37:55	MarkDuplicates	Read    50,000,000 records.  Elapsed time: 00:07:24s.  Time for last 1,000,000:   17s.  Last read position: chr3R:4,385,775
+INFO	2019-01-30 17:37:55	MarkDuplicates	Tracking 260107 as yet unmatched pairs. 60006 records in RAM.
+INFO	2019-01-30 17:38:04	MarkDuplicates	Read    51,000,000 records.  Elapsed time: 00:07:33s.  Time for last 1,000,000:    8s.  Last read position: chr3R:5,933,261
+INFO	2019-01-30 17:38:04	MarkDuplicates	Tracking 258198 as yet unmatched pairs. 55659 records in RAM.
+INFO	2019-01-30 17:38:14	MarkDuplicates	Read    52,000,000 records.  Elapsed time: 00:07:42s.  Time for last 1,000,000:    9s.  Last read position: chr3R:7,551,089
+INFO	2019-01-30 17:38:14	MarkDuplicates	Tracking 257416 as yet unmatched pairs. 53094 records in RAM.
+INFO	2019-01-30 17:38:20	MarkDuplicates	Read    53,000,000 records.  Elapsed time: 00:07:49s.  Time for last 1,000,000:    6s.  Last read position: chr3R:9,150,822
+INFO	2019-01-30 17:38:20	MarkDuplicates	Tracking 256584 as yet unmatched pairs. 49751 records in RAM.
+INFO	2019-01-30 17:38:32	MarkDuplicates	Read    54,000,000 records.  Elapsed time: 00:08:01s.  Time for last 1,000,000:   12s.  Last read position: chr3R:10,787,104
+INFO	2019-01-30 17:38:32	MarkDuplicates	Tracking 255614 as yet unmatched pairs. 47240 records in RAM.
+INFO	2019-01-30 17:38:39	MarkDuplicates	Read    55,000,000 records.  Elapsed time: 00:08:08s.  Time for last 1,000,000:    6s.  Last read position: chr3R:12,425,436
+INFO	2019-01-30 17:38:39	MarkDuplicates	Tracking 254195 as yet unmatched pairs. 44033 records in RAM.
+INFO	2019-01-30 17:38:46	MarkDuplicates	Read    56,000,000 records.  Elapsed time: 00:08:14s.  Time for last 1,000,000:    6s.  Last read position: chr3R:14,033,109
+INFO	2019-01-30 17:38:46	MarkDuplicates	Tracking 252637 as yet unmatched pairs. 40543 records in RAM.
+INFO	2019-01-30 17:39:03	MarkDuplicates	Read    57,000,000 records.  Elapsed time: 00:08:32s.  Time for last 1,000,000:   17s.  Last read position: chr3R:15,649,206
+INFO	2019-01-30 17:39:03	MarkDuplicates	Tracking 251176 as yet unmatched pairs. 37362 records in RAM.
+INFO	2019-01-30 17:39:12	MarkDuplicates	Read    58,000,000 records.  Elapsed time: 00:08:41s.  Time for last 1,000,000:    9s.  Last read position: chr3R:17,278,934
+INFO	2019-01-30 17:39:12	MarkDuplicates	Tracking 249984 as yet unmatched pairs. 34937 records in RAM.
+INFO	2019-01-30 17:39:22	MarkDuplicates	Read    59,000,000 records.  Elapsed time: 00:08:50s.  Time for last 1,000,000:    9s.  Last read position: chr3R:18,897,686
+INFO	2019-01-30 17:39:22	MarkDuplicates	Tracking 248233 as yet unmatched pairs. 31633 records in RAM.
+INFO	2019-01-30 17:39:30	MarkDuplicates	Read    60,000,000 records.  Elapsed time: 00:08:59s.  Time for last 1,000,000:    8s.  Last read position: chr3R:20,503,688
+INFO	2019-01-30 17:39:30	MarkDuplicates	Tracking 246355 as yet unmatched pairs. 28536 records in RAM.
+INFO	2019-01-30 17:39:41	MarkDuplicates	Read    61,000,000 records.  Elapsed time: 00:09:09s.  Time for last 1,000,000:   10s.  Last read position: chr3R:22,114,277
+INFO	2019-01-30 17:39:41	MarkDuplicates	Tracking 244196 as yet unmatched pairs. 24999 records in RAM.
+INFO	2019-01-30 17:39:48	MarkDuplicates	Read    62,000,000 records.  Elapsed time: 00:09:16s.  Time for last 1,000,000:    7s.  Last read position: chr3R:23,790,851
+INFO	2019-01-30 17:39:48	MarkDuplicates	Tracking 242073 as yet unmatched pairs. 21655 records in RAM.
+INFO	2019-01-30 17:39:55	MarkDuplicates	Read    63,000,000 records.  Elapsed time: 00:09:24s.  Time for last 1,000,000:    7s.  Last read position: chr3R:25,443,311
+INFO	2019-01-30 17:39:55	MarkDuplicates	Tracking 240249 as yet unmatched pairs. 18132 records in RAM.
+INFO	2019-01-30 17:40:14	MarkDuplicates	Read    64,000,000 records.  Elapsed time: 00:09:42s.  Time for last 1,000,000:   18s.  Last read position: chr3R:27,051,977
+INFO	2019-01-30 17:40:14	MarkDuplicates	Tracking 238021 as yet unmatched pairs. 14533 records in RAM.
+INFO	2019-01-30 17:40:21	MarkDuplicates	Read    65,000,000 records.  Elapsed time: 00:09:50s.  Time for last 1,000,000:    7s.  Last read position: chr3R:28,779,049
+INFO	2019-01-30 17:40:21	MarkDuplicates	Tracking 236159 as yet unmatched pairs. 9893 records in RAM.
+INFO	2019-01-30 17:40:32	MarkDuplicates	Read    66,000,000 records.  Elapsed time: 00:10:01s.  Time for last 1,000,000:   11s.  Last read position: chr3R:30,477,455
+INFO	2019-01-30 17:40:32	MarkDuplicates	Tracking 233373 as yet unmatched pairs. 5376 records in RAM.
+INFO	2019-01-30 17:40:40	MarkDuplicates	Read    67,000,000 records.  Elapsed time: 00:10:09s.  Time for last 1,000,000:    7s.  Last read position: chr4:26,476
+INFO	2019-01-30 17:40:40	MarkDuplicates	Tracking 229853 as yet unmatched pairs. 9153 records in RAM.
+INFO	2019-01-30 17:40:52	MarkDuplicates	Read    68,000,000 records.  Elapsed time: 00:10:20s.  Time for last 1,000,000:   11s.  Last read position: chrM:1
+INFO	2019-01-30 17:40:52	MarkDuplicates	Tracking 232319 as yet unmatched pairs. 9762 records in RAM.
+INFO	2019-01-30 17:40:58	MarkDuplicates	Read    69,000,000 records.  Elapsed time: 00:10:27s.  Time for last 1,000,000:    6s.  Last read position: chrM:7,761
+INFO	2019-01-30 17:40:58	MarkDuplicates	Tracking 250238 as yet unmatched pairs. 27280 records in RAM.
+INFO	2019-01-30 17:41:06	MarkDuplicates	Read    70,000,000 records.  Elapsed time: 00:10:34s.  Time for last 1,000,000:    7s.  Last read position: chrM:15,466
+INFO	2019-01-30 17:41:06	MarkDuplicates	Tracking 237588 as yet unmatched pairs. 14176 records in RAM.
+INFO	2019-01-30 17:41:23	MarkDuplicates	Read    71,000,000 records.  Elapsed time: 00:10:51s.  Time for last 1,000,000:   16s.  Last read position: chrUn_DS484226v1:28
+INFO	2019-01-30 17:41:23	MarkDuplicates	Tracking 338254 as yet unmatched pairs. 82014 records in RAM.
+INFO	2019-01-30 17:41:37	MarkDuplicates	Read    72,000,000 records.  Elapsed time: 00:11:05s.  Time for last 1,000,000:   14s.  Last read position: chrUn_DS483992v1:170
+INFO	2019-01-30 17:41:37	MarkDuplicates	Tracking 236332 as yet unmatched pairs. 748 records in RAM.
+INFO	2019-01-30 17:41:48	MarkDuplicates	Read    73,000,000 records.  Elapsed time: 00:11:17s.  Time for last 1,000,000:   11s.  Last read position: chrUn_CP007120v1:51,722
+INFO	2019-01-30 17:41:48	MarkDuplicates	Tracking 216421 as yet unmatched pairs. 6525 records in RAM.
+INFO	2019-01-30 17:41:59	MarkDuplicates	Read    74,000,000 records.  Elapsed time: 00:11:27s.  Time for last 1,000,000:   10s.  Last read position: chrX:259,145
+INFO	2019-01-30 17:41:59	MarkDuplicates	Tracking 208334 as yet unmatched pairs. 119307 records in RAM.
+INFO	2019-01-30 17:42:10	MarkDuplicates	Read    75,000,000 records.  Elapsed time: 00:11:39s.  Time for last 1,000,000:   11s.  Last read position: chrX:2,223,899
+INFO	2019-01-30 17:42:10	MarkDuplicates	Tracking 204224 as yet unmatched pairs. 114960 records in RAM.
+INFO	2019-01-30 17:42:18	MarkDuplicates	Read    76,000,000 records.  Elapsed time: 00:11:47s.  Time for last 1,000,000:    7s.  Last read position: chrX:4,151,956
+INFO	2019-01-30 17:42:18	MarkDuplicates	Tracking 198387 as yet unmatched pairs. 108828 records in RAM.
+INFO	2019-01-30 17:42:25	MarkDuplicates	Read    77,000,000 records.  Elapsed time: 00:11:54s.  Time for last 1,000,000:    6s.  Last read position: chrX:6,119,863
+INFO	2019-01-30 17:42:25	MarkDuplicates	Tracking 193347 as yet unmatched pairs. 103512 records in RAM.
+INFO	2019-01-30 17:42:34	MarkDuplicates	Read    78,000,000 records.  Elapsed time: 00:12:02s.  Time for last 1,000,000:    8s.  Last read position: chrX:8,047,220
+INFO	2019-01-30 17:42:34	MarkDuplicates	Tracking 188007 as yet unmatched pairs. 97879 records in RAM.
+INFO	2019-01-30 17:42:45	MarkDuplicates	Read    79,000,000 records.  Elapsed time: 00:12:14s.  Time for last 1,000,000:   11s.  Last read position: chrX:9,830,605
+INFO	2019-01-30 17:42:45	MarkDuplicates	Tracking 182384 as yet unmatched pairs. 92003 records in RAM.
+INFO	2019-01-30 17:42:52	MarkDuplicates	Read    80,000,000 records.  Elapsed time: 00:12:21s.  Time for last 1,000,000:    7s.  Last read position: chrX:11,641,166
+INFO	2019-01-30 17:42:52	MarkDuplicates	Tracking 172644 as yet unmatched pairs. 81949 records in RAM.
+INFO	2019-01-30 17:42:59	MarkDuplicates	Read    81,000,000 records.  Elapsed time: 00:12:28s.  Time for last 1,000,000:    6s.  Last read position: chrX:13,542,433
+INFO	2019-01-30 17:42:59	MarkDuplicates	Tracking 166132 as yet unmatched pairs. 75256 records in RAM.
+INFO	2019-01-30 17:43:09	MarkDuplicates	Read    82,000,000 records.  Elapsed time: 00:12:37s.  Time for last 1,000,000:    9s.  Last read position: chrX:15,436,665
+INFO	2019-01-30 17:43:09	MarkDuplicates	Tracking 158424 as yet unmatched pairs. 66863 records in RAM.
+INFO	2019-01-30 17:43:16	MarkDuplicates	Read    83,000,000 records.  Elapsed time: 00:12:44s.  Time for last 1,000,000:    6s.  Last read position: chrX:17,232,365
+INFO	2019-01-30 17:43:16	MarkDuplicates	Tracking 154160 as yet unmatched pairs. 62450 records in RAM.
+INFO	2019-01-30 17:43:22	MarkDuplicates	Read    84,000,000 records.  Elapsed time: 00:12:51s.  Time for last 1,000,000:    6s.  Last read position: chrX:19,143,239
+INFO	2019-01-30 17:43:22	MarkDuplicates	Tracking 147838 as yet unmatched pairs. 55846 records in RAM.
+INFO	2019-01-30 17:43:32	MarkDuplicates	Read    85,000,000 records.  Elapsed time: 00:13:01s.  Time for last 1,000,000:   10s.  Last read position: chrX:21,044,256
+INFO	2019-01-30 17:43:33	MarkDuplicates	Tracking 138640 as yet unmatched pairs. 46295 records in RAM.
+INFO	2019-01-30 17:43:42	MarkDuplicates	Read    86,000,000 records.  Elapsed time: 00:13:11s.  Time for last 1,000,000:    9s.  Last read position: chrX:22,783,604
+INFO	2019-01-30 17:43:42	MarkDuplicates	Tracking 107531 as yet unmatched pairs. 11786 records in RAM.
+INFO	2019-01-30 17:43:50	MarkDuplicates	Read    87,000,000 records.  Elapsed time: 00:13:18s.  Time for last 1,000,000:    7s.  Last read position: chrX_DS484388v1_random:1,389
+INFO	2019-01-30 17:43:50	MarkDuplicates	Tracking 115743 as yet unmatched pairs. 697 records in RAM.
+INFO	2019-01-30 17:43:57	MarkDuplicates	Read    88,000,000 records.  Elapsed time: 00:13:26s.  Time for last 1,000,000:    7s.  Last read position: chrX_DS485798v1_random:812
+INFO	2019-01-30 17:43:57	MarkDuplicates	Tracking 106045 as yet unmatched pairs. 607 records in RAM.
+INFO	2019-01-30 17:44:08	MarkDuplicates	Read    89,000,000 records.  Elapsed time: 00:13:37s.  Time for last 1,000,000:   11s.  Last read position: chrY:2,297,074
+INFO	2019-01-30 17:44:08	MarkDuplicates	Tracking 43439 as yet unmatched pairs. 27626 records in RAM.
+INFO	2019-01-30 17:44:12	MarkDuplicates	Read 89440730 records. 0 pairs never matched.
+INFO	2019-01-30 17:44:14	MarkDuplicates	After buildSortedReadEndLists freeMemory: 887790344; totalMemory: 898629632; maxMemory: 954728448
+INFO	2019-01-30 17:44:14	MarkDuplicates	Will retain up to 29835264 duplicate indices before spilling to disk.
+INFO	2019-01-30 17:44:14	MarkDuplicates	Traversing read pair information and detecting duplicates.
+INFO	2019-01-30 17:44:33	MarkDuplicates	Traversing fragment information and detecting duplicates.
+INFO	2019-01-30 17:45:05	MarkDuplicates	Sorting list of duplicate records.
+INFO	2019-01-30 17:45:05	MarkDuplicates	After generateDuplicateIndexes freeMemory: 662016744; totalMemory: 911736832; maxMemory: 954728448
+INFO	2019-01-30 17:45:05	MarkDuplicates	Marking 2626462 records as duplicates.
+INFO	2019-01-30 17:45:05	MarkDuplicates	Found 14166 optical duplicate clusters.
+INFO	2019-01-30 17:45:05	MarkDuplicates	Reads are assumed to be ordered by: coordinate
+INFO	2019-01-30 17:47:18	MarkDuplicates	Written    10,000,000 records.  Elapsed time: 00:02:12s.  Time for last 10,000,000:  132s.  Last read position: chr2L:16,238,149
+INFO	2019-01-30 17:49:23	MarkDuplicates	Written    20,000,000 records.  Elapsed time: 00:04:18s.  Time for last 10,000,000:  125s.  Last read position: chr2R:8,475,534
+INFO	2019-01-30 17:51:27	MarkDuplicates	Written    30,000,000 records.  Elapsed time: 00:06:22s.  Time for last 10,000,000:  124s.  Last read position: chr2R:24,724,395
+INFO	2019-01-30 17:53:34	MarkDuplicates	Written    40,000,000 records.  Elapsed time: 00:08:29s.  Time for last 10,000,000:  127s.  Last read position: chr3L:15,463,364
+INFO	2019-01-30 17:55:42	MarkDuplicates	Written    50,000,000 records.  Elapsed time: 00:10:36s.  Time for last 10,000,000:  127s.  Last read position: chr3R:4,385,775
+INFO	2019-01-30 17:57:46	MarkDuplicates	Written    60,000,000 records.  Elapsed time: 00:12:40s.  Time for last 10,000,000:  124s.  Last read position: chr3R:20,503,688
+INFO	2019-01-30 17:59:53	MarkDuplicates	Written    70,000,000 records.  Elapsed time: 00:14:48s.  Time for last 10,000,000:  127s.  Last read position: chrM:15,466
+INFO	2019-01-30 18:02:05	MarkDuplicates	Written    80,000,000 records.  Elapsed time: 00:17:00s.  Time for last 10,000,000:  132s.  Last read position: chrX:11,641,166
+INFO	2019-01-30 18:04:09	MarkDuplicates	Before output close freeMemory: 908213288; totalMemory: 920649728; maxMemory: 954728448
+INFO	2019-01-30 18:04:09	MarkDuplicates	After output close freeMemory: 908213288; totalMemory: 920649728; maxMemory: 954728448
+[Wed Jan 30 18:04:09 CET 2019] picard.sam.markduplicates.MarkDuplicates done. Elapsed time: 33.64 minutes.
+Runtime.totalMemory()=920649728
+Exception in thread "Thread-30" Exception in thread "Thread-29" Exception in thread "Thread-3" Exception in thread "Thread-35" Exception in thread "Thread-36" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3908582389457516992.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3908582389457516992.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5570709705942179375.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5570709705942179375.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.976962252237068656.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.976962252237068656.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7601084111656204086.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7601084111656204086.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.6504552293853555593.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.6504552293853555593.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-28" Exception in thread "Thread-34" Exception in thread "Thread-6" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7384707938097037617.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7384707938097037617.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8250336519302429387.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8250336519302429387.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-33" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8437235494224009090.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8437235494224009090.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-22" Exception in thread "Thread-8" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3495328489518786848.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3495328489518786848.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-38" Exception in thread "Thread-13" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.1989674798381893461.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.1989674798381893461.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-39" Exception in thread "Thread-23" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3861796183394433873.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.3861796183394433873.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-17" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.1676231345310237238.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.1676231345310237238.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5652999927020081576.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5652999927020081576.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8405911565250119379.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8405911565250119379.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7796650726506022166.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7796650726506022166.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-26" Exception in thread "Thread-15" Exception in thread "Thread-5" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8669946162702082596.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8669946162702082596.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-20" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8146087914735929815.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8146087914735929815.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7255861934904626051.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7255861934904626051.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.308844087683909936.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.308844087683909936.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-21" Exception in thread "Thread-16" Exception in thread "Thread-25" Exception in thread "Thread-14" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5049985029918491934.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5049985029918491934.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-4" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.800081212858065083.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.800081212858065083.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-7" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4837824272059559691.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4837824272059559691.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-19" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2619142293707780559.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2619142293707780559.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-10" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.242234451331432110.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.242234451331432110.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-31" Exception in thread "Thread-27" Exception in thread "Thread-24" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.75522202357304067.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.75522202357304067.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-12" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5711516700172342386.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5711516700172342386.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-11" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.157901528285207478.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.157901528285207478.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-2" Exception in thread "Thread-32" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4832782526389871777.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4832782526389871777.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-37" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4216744671229211591.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.4216744671229211591.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-18" Exception in thread "Thread-1" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.6401505072686618903.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.6401505072686618903.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Exception in thread "Thread-9" htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.983065458896185430.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.983065458896185430.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7437479148838468754.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7437479148838468754.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8349808630138029917.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8349808630138029917.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2790569198125204730.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2790569198125204730.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8934272018031562545.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.8934272018031562545.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2880181801336530014.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.2880181801336530014.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7444130164265651105.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.7444130164265651105.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5717202973351163181.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.5717202973351163181.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+htsjdk.samtools.util.RuntimeIOException: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.578085644670190863.tmp
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:374)
+Caused by: java.nio.file.NoSuchFileException: /tmp/forneris/sortingcollection.578085644670190863.tmp
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.implDelete(UnixFileSystemProvider.java:244)
+	at sun.nio.fs.AbstractFileSystemProvider.delete(AbstractFileSystemProvider.java:103)
+	at java.nio.file.Files.delete(Files.java:1126)
+	at htsjdk.samtools.util.IOUtil$DeletePathThread.run(IOUtil.java:372)
+Finished job 34.
+1 of 2 steps (50%) done
+
+localrule all:
+    input: /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_vgn_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-639_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-852_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-712_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-57_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-714_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-399_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-307_1_val_1.fq.gz, /scratch/perino/F1_genotyping/trimmed_fastq/parental_F1_DGRP-28_1_val_1.fq.gz, /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-639_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-639_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed_sorted.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-639_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed_markduplicates.bam, /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed_markduplicates.bam
+    jobid: 0
+
+Finished job 0.
+2 of 2 steps (100%) done
