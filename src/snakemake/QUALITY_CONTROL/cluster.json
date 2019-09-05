@@ -1,0 +1,10 @@
+{
+  "__default__" :
+  {
+    "sbatch" : "sbatch -o logs/{rule}.{wildcards}.%j.out -e logs/{rule}.{wildcards}.%j.out",
+    "partition" : "htc",
+    "n" : "1",
+    "mem" : "8G",
+    "moreoptions" : "-t 04:00:00"
+  }
+}

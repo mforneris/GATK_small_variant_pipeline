@@ -1,0 +1,133 @@
+# Tools
+JAVA = config["tools"]["java"]
+SNPEFF = config["tools"]["snpeff"]
+SNPSIFT = config["tools"]["snpsift"]
+ONEPERLINE = config["tools"]["oneperline"]
+COLLECT_SAMPLES_IS = config["tools"]["collect_samples_is"]
+BEDTOOLS = config["tools"]["bedtools"]
+FILTER_1COL = config["tools"]["filter_1col"]
+VCFTOOLS = config["tools"]["vcftools"]
+PLINK = config["tools"]["plink"]
+LIMIX_CONVERTER = config["tools"]["limix_converter"]
+PLOT_PCA = config["tools"]["plot_pca"]
+RSCRIPT = config["tools"]["rscript"]
+BGZIP = config["tools"]["bgzip"]
+
+# Paths
+GFF_dm6 = config["global"]["gff_dm6"]
+GATK_DIR = config["paths"]["GATK"]
+POP_STRUCTURE_DIR = config["paths"]["population_structure"]
+
+# Variables
+VCF = ["Haplotype_joint_call_F1_stringent_filtering", "Haplotype_joint_call_F1_lenient_filtering"]
+
+# Targets
+SNPEFF_OUTPUT = expand("{path}/{vcf}_ann.vcf", path=POP_STRUCTURE_DIR, vcf=VCF),
+VCF_SHORT_INTRONIC_VARIANTS = expand("{path}/{vcf}.short_intronic_variants.vcf.gz", path=POP_STRUCTURE_DIR, vcf=VCF),
+PCA_PDF = expand("{path}/{vcf}_short_intronic_variants_pca.pdf", path=POP_STRUCTURE_DIR, vcf=VCF),
+COMPRESSED_VCF = expand("{path}/{vcf}.short_intronic_variants.vcf.hdf", path=POP_STRUCTURE_DIR, vcf=VCF),
+
+rule all:
+	input:
+		PCA_PDF
+
+rule run_snpEff:
+        input:
+                vcf = expand("{path}/{{vcf}}.vcf", path=GATK_DIR)
+        output:
+                vcf_ann = expand("{path}/{{vcf}}_ann.vcf", path=POP_STRUCTURE_DIR),
+		vcf_txt = expand("{path}/{{vcf}}_ann.txt.gz", path=POP_STRUCTURE_DIR),
+		one_per_line = expand("{path}/{{vcf}}.ann.one_per_line.txt.gz", path=POP_STRUCTURE_DIR),
+        params:
+                genome_annotation_dm6 = "BDGP6.86"
+        shell:
+                """
+		cat {input.vcf} | sed 's/chr//g' > {output.vcf_ann}.temp.vcf
+                {JAVA} -Xmx4g -jar {SNPEFF} {params.genome_annotation_dm6} {output.vcf_ann}.temp.vcf -v > {output.vcf_ann}
+                cat {output.vcf_ann} | {JAVA} -jar {SNPSIFT} extractFields - CHROM POS REF ALT "ANN[*].EFFECT" | gzip > {output.vcf_txt}
+                cat {output.vcf_ann} | {ONEPERLINE} | {JAVA} -jar {SNPSIFT} extractFields - CHROM POS REF ALT "ANN[*].EFFECT" | gzip > {output.one_per_line}
+                rm {output.vcf_ann}.temp*;
+                """
+
+rule identification_of_neutral_variants:
+	input:
+		variants_ann = expand("{path}/{{vcf}}.ann.one_per_line.txt.gz", path=POP_STRUCTURE_DIR),
+		gff = {GFF_dm6},
+		vcf = expand("{path}/{{vcf}}.vcf", path=GATK_DIR)
+	output:
+		intronic = expand("{path}/{{vcf}}_intronic_variants.pos", path=POP_STRUCTURE_DIR),
+		synonimous = expand("{path}/{{vcf}}_synonymous_variant.pos", path=POP_STRUCTURE_DIR),
+		short_introns = expand("{path}/{{vcf}}_short_introns.gff", path=POP_STRUCTURE_DIR),
+		short_intronic = expand("{path}/{{vcf}}_short_intronic_variants.pos", path=POP_STRUCTURE_DIR),
+		vcf = expand("{path}/{{vcf}}.short_intronic_variants.vcf.gz", path=POP_STRUCTURE_DIR),
+	params:
+		filter = "--maf 0.05 --max-maf 0.95 --min-alleles 2 --max-alleles 2 --max-missing 0.8",
+		short_introns_length = "65",
+	shell:
+                """
+                # I firstly identify vaiants annotated as only intronic
+                zcat {input.variants_ann} | awk '{{print $1 "&" $2 "&" $3 "&" $4 "\\t" $5}}' | awk '$2 != "downstream_gene_variant"' | awk '$2 != "upstream_gene_variant"' \
+                	| {COLLECT_SAMPLES_IS} | grep "intron_variant" | awk '{{P="TRUE"; for(i=2; i<=NF; i++) {{if ($(i) != "intron_variant") {{P="FALSE"}}}} if (P=="TRUE") {{print}}}}' \
+                	| cut -f1 | sed 's/&/\\t/g' | cut -f1,2 | sort -k1,1 -k2,2g | uniq > {output.intronic};
+
+                # I identify small introns (<=65bp) that are not overlapping other introns
+                zcat {input.gff} | awk '{{OFS="\\t"}} {{if (!($1 ~/chr/)) {{$1="chr"$1}}; print}}' | awk '$3=="intron"' \
+			| awk '$5-$4 <= {params.short_introns_length}' | sort -k1,1 -k4,4g > {output.intronic}.temp_short_introns.gff;
+                zcat {input.gff} | awk '{{OFS="\\t"}} {{if (!($1 ~/chr/)) {{$1="chr"$1}}; print}}' | awk '$3=="intron"' \
+			| sort -k1,1 -k4,4g > {output.intronic}.temp_all_introns.gff;
+                {BEDTOOLS} intersect -wao -a {output.intronic}.temp_short_introns.gff -b {output.intronic}.temp_all_introns.gff | cut -f1-9 | uniq -c \
+			| sed 's/^ *//g' | sed 's/\\ /\\t/g' | awk '$1==1' | cut -f2- | sort -k1,1 -k4,4g > {output.short_introns};
+
+                # I then filter intronic variants for being present in short introns
+                cat {output.intronic} | awk '{{print "chr" $0}}' | awk '{{OFS="\\t"}} {{print $1, $2-1, $2}}' | {BEDTOOLS} intersect -wao -a - -b {output.short_introns} \
+			| awk '$(NF) > 0' | cut -f1,3 | sort -k1,1 -k2,2g | uniq > {output.short_intronic} ;
+
+                # I finally select these variants in the vcf; I filter out the X chromosome (only autosomal) and I filter rare and poorly genotyped variants (maf > 0.05) (max missing < 0.8)
+                cat {input.vcf} | grep "^#" > {output.intronic}.temp_vcf_header;
+                cat {input.vcf} | grep -v "#" | awk '{{OFS="\\t"}} {{if (!($1 ~/chr/)) {{$1="chr"$1}}; print}}' | sed 's/\\t/_/' \
+			| {FILTER_1COL} 1 <(cat {output.short_intronic} | sed 's/\\t/_/g') | sed 's/_/\\t/' | awk '$1 != "chrX"' \
+			| sort -k1,1 -k2,2g > {output.intronic}.temp_neutral_var.vcf;
+             	cat {output.intronic}.temp_vcf_header {output.intronic}.temp_neutral_var.vcf | {VCFTOOLS} {params.filter} --recode --vcf - --stdout | {BGZIP} > {output.vcf};
+
+                # This identifies synonymous variants
+                zcat {input.variants_ann} | awk '{{print $1 "&" $2 "&" $3 "&" $4 "\\t" $5}}' | awk '$2 != "downstream_gene_variant"' | awk '$2 != "upstream_gene_variant"' \
+        	        | {COLLECT_SAMPLES_IS} | grep "synonymous_variant" | awk '{{P="TRUE"; for(i=2; i<=NF; i++) {{if ($(i) != "synonymous_variant") {{P="FALSE"}}}} \
+			if (P=="TRUE") {{print}}}}' | cut -f1 | sed 's/&/\\t/g' | cut -f1,2 | sort -k1,1 -k2,2g | uniq > {output.synonimous};
+
+		rm {output.intronic}.temp*
+                """
+
+rule run_plink_pca:
+	input:
+		expand("{path}/{{vcf}}.short_intronic_variants.vcf.gz", path=POP_STRUCTURE_DIR),
+	output:
+		expand("{path}/{{vcf}}_short_intronic_variants_pca.eigenvec", path=POP_STRUCTURE_DIR),
+	shell:
+		"""
+		{PLINK} --vcf {input} --out {POP_STRUCTURE_DIR}/{wildcards.vcf}.short_intronic_variants --allow-extra-chr
+		{PLINK} --bfile {POP_STRUCTURE_DIR}/{wildcards.vcf}.short_intronic_variants --pca --out {POP_STRUCTURE_DIR}/{wildcards.vcf}_short_intronic_variants_pca --allow-extra-chr
+		"""
+
+rule plot_pca:
+	input:
+		expand("{path}/{{vcf}}_short_intronic_variants_pca.eigenvec", path=POP_STRUCTURE_DIR),
+	output:
+		expand("{path}/{{vcf}}_short_intronic_variants_pca.pdf", path=POP_STRUCTURE_DIR),
+	shell:
+		"""
+		{RSCRIPT} {PLOT_PCA} {input} {output};
+		"""
+
+rule compress_neutral_variants_vcf:
+	input:
+		vcf = expand("{path}/{{vcf}}.short_intronic_variants.vcf.gz", path=POP_STRUCTURE_DIR),
+	output:
+		zeroonetwo = expand("{path}/{{vcf}}.short_intronic_variants.vcf.012", path=POP_STRUCTURE_DIR),
+		hdf = expand("{path}/{{vcf}}.short_intronic_variants.vcf.hdf", path=POP_STRUCTURE_DIR),		
+	shell:
+		"""
+		export PATH="/g/furlong/forneris/software/anaconda2/bin:$PATH"
+		{VCFTOOLS} --gzvcf {input} --012 --out {POP_STRUCTURE_DIR}/{wildcards.vcf}.short_intronic_variants.vcf;
+                {LIMIX_CONVERTER} --outfile={output.hdf} --g012={output.zeroonetwo};
+		"""
+

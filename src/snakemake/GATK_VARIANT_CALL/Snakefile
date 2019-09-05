@@ -1,0 +1,360 @@
+# Global
+DMEL_GENOME = config["global"]["dmel_genome"]
+WOLBACHIA_GENOME = config["global"]["wolbachia_genome"]
+DGRP_VCF = config["global"]["DGRP_vcf"]
+
+# Paths
+JOINT_GENOME_DIR = config["paths"]["joint_genome"]
+MAPPING_SCRATCH_DIR = config["paths"]["mapping_scratch"]
+GATK_DIR = config["paths"]["GATK"]
+DGRP_VCF_DIR = config["paths"]["DGRP_vcf"]
+GEONOME_DIR = config["paths"]["genome_folder"]
+
+# Tools
+PICARD = config["tools"]["picard"]
+GATK = config["tools"]["gatk"]
+SAMTOOLS = config["tools"]["samtools"]
+VCFTOOLS = config["tools"]["vcftools"]
+TABIX = config["tools"]["tabix"]
+BGZIP = config["tools"]["bgzip"]
+JAVA = config["tools"]["java"]
+GATK_1_8_1 = config["tools"]["gatk-1.8.1"]
+FILTER_1COL = config["tools"]["filter_1col"]
+BCFTOOLS = config["tools"]["bcftools"]
+BEDTOOLS = config["tools"]["bedtools"]
+
+# Variables
+FASTQ_WILDCARD_BASENAME, = glob_wildcards("/g/furlong/project/71_F1_parental_genotyping/data/fastq/parental_F1_{fastq_name}_1.fastq.gz")
+FASTQ_WILDCARD = ["parental_F1_" + n for n in FASTQ_WILDCARD_BASENAME]
+PAIR = ['1', '2']
+MODE = ['SNP', 'INDEL']
+QUALITY_CONTROL_PARAMETERS = ['Quality_By_Depth_QD', 'Fisher_Strand_FS', 'Strand_Odds_Ratio_SOR', 'Mapping_Quality_MQ', 'Mapping_Quality_Rank_Sum', 'Rank_Sum_Test']
+FILTER = ['_F1', '_F1_lenient_filtering', '_F1_stringent_filtering']
+CUTOFF = ['90', '99', '99.9', '100']
+CHRS = []
+with open("../../../analysis/GATK_variant_call/chromosomes_list.txt") as c:
+	chrs = c.readlines()
+CHRS = [x.strip() for x in chrs] 
+
+#### Debug
+#FASTQ_WILDCARD = ["parental_F1_DGRP-399"]
+##########
+
+
+# Targets
+HAPLOTYPE_CALL = expand("{path}/split_chr/Haplotype_joint_call_{chrs}.vcf", path=GATK_DIR, chrs=CHRS)
+HQ_DGRP_VARIANTS = expand("{path}/freeze2.liftedoverDm3_HQ_{mode}.vcf.bgz", path=GATK_DIR, mode=MODE)
+VQ_RECALIBRATION_MODEL = expand("{path}/{mode}.recal", path=GATK_DIR, mode=MODE)
+VCF_RECALIBRATION_FILTERED = expand("{path}/Haplotype_joint_call_F1_{mode}_VQSLOD_filtered_cutoff_{cutoff}.vcf", path=GATK_DIR, mode=MODE, cutoff=CUTOFF)
+QUALITY_CONTROL_FILES = expand("{path}/quality_filters/{param}_{mode}{filt}.txt", path=GATK_DIR, filt=FILTER, param=QUALITY_CONTROL_PARAMETERS, mode=MODE)
+PER_BASE_COVERAGE = expand("{path}/{fastq_name}_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+
+rule all:
+	input:
+		HAPLOTYPE_CALL, QUALITY_CONTROL_FILES, PER_BASE_COVERAGE
+
+
+rule chromosomes_list:
+	input:
+		expand("{path}/{fastq_name}_trimmed_rmduplicates_annot_BQSR.bam", path=MAPPING_SCRATCH_DIR, fastq_name="parental_F1_vgn"),
+	output:
+		expand("{path}/chromosomes_list.txt", path=GATK_DIR)
+	shell:
+		"""
+		{SAMTOOLS} view {input} -H | grep SQ | cut -f2 | sed 's/.*://g' | grep -v ENA > {output}
+		"""
+
+
+rule haplotype_caller:
+	input:
+		bam = expand("{path}/{fastq_name}_trimmed_rmduplicates_annot_BQSR.bam", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD),
+		ref = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		vcf = expand("{path}/split_chr/Haplotype_joint_call_{{chrs}}.vcf", path=GATK_DIR),
+	params:
+		annotation = "-G StandardAnnotation",
+		min_base_qual = 20,
+	shell:
+		"""
+		INPUT=`echo "--input="{input.bam} | sed 's/\\ /\\ --input=/g'`
+		{GATK} HaplotypeCaller $INPUT --output={output.vcf} --reference={input.ref} {params.annotation} --min-base-quality-score={params.min_base_qual} -L {wildcards.chrs}
+		"""
+
+rule merge_vcf_by_chromosomes:
+	input:
+		expand("{path}/split_chr/Haplotype_joint_call_{chrs}.vcf", path=GATK_DIR, chrs=["chr2L", "chr2R", "chr3L", "chr3R", "chr4", "chrM", "chrX", "chrY"])
+	output:	
+		expand("{path}/Haplotype_joint_call_F1.vcf", path=GATK_DIR)
+	shell:
+		"""
+		IN=`echo {input} | sed 's/\\ /\\ -I\\ /g'`;
+		{GATK} GatherVcfs -I $IN -O {output}
+		"""
+
+############################
+# GATK VARIANT RECALIBRATION
+############################
+
+
+# Variant recalibration is based on comparing the newly called variants to a gold (or silver) standard.
+# We only have the DGRP and GDL dataset to compare to and both vcf are modium to low quality. 
+# In addition, the annotation of both vcf is crap so the model cannot learn about the variants in this vcf.
+# I need to apply hard filtering on the variants we just call. We won't have estimates of false positives/negatives.
+
+##############################################################
+
+rule high_quality_variants_DGRP:
+	input:
+		expand("{path}/freeze2.liftedoverDm3.vcf.bgz", path=DGRP_VCF_DIR)
+	output:
+		expand("{path}/freeze2.liftedoverDm3_HQ_{{mode}}.vcf.bgz", path=GATK_DIR)
+	params:
+		filter = "--max-missing 0.95 --non-ref-ac 20 --remove-filtered-all"
+	shell:
+		"""
+		if [[ {wildcards.mode} == "SNP" ]]; then MODE="--remove-indels"; else MODE="--keep-only-indels"; fi
+		{VCFTOOLS} --gzvcf {input} {params.filter} $MODE --recode --stdout | {BGZIP} > {output};
+		{TABIX} -p vcf {output}
+		"""
+
+
+### Need to pass through variant annotator to add annotation (inbreeding coefficient:
+# https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_annotator_VariantAnnotator.php
+	
+rule train_variant_recalibration:
+	input:
+		novel_vcf = expand("{path}/Haplotype_joint_call_F1.vcf", path=GATK_DIR),
+		reference = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR),
+		DGRP_vcf = expand("{path}/freeze2.liftedoverDm3_HQ_{{mode}}.vcf.bgz", path=GATK_DIR),
+	output:
+		recal = expand("{path}/{{mode}}.recal", path=GATK_DIR),
+		tranches = expand("{path}/{{mode}}.tranches", path=GATK_DIR),
+		rscript = expand("{path}/{{mode}}_recalibrate_plots.R", path=GATK_DIR),
+	shell:
+		"""
+		{JAVA} -Xmx4g -jar {GATK_1_8_1} -T VariantRecalibrator \
+		-R {input.reference} \
+		-input {input.novel_vcf} \
+		-resource:DGRP,known=false,training=true,truth=true,prior=10.0 {input.DGRP_vcf} \
+		-an DP -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an InbreedingCoeff \
+		-mode {wildcards.mode} \
+		-tranche 100.0 -tranche 99.9 -tranche 99.0 -tranche 90.0 \
+		-recalFile {output.recal} \
+		-tranchesFile {output.tranches} \
+		-rscriptFile {output.rscript}
+		"""
+
+rule apply_recalibration:
+	input:
+		novel_vcf = expand("{path}/Haplotype_joint_call_F1.vcf", path=GATK_DIR),
+		reference = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR),
+		recal = expand("{path}/{{mode}}.recal", path=GATK_DIR),
+		tranches = expand("{path}/{{mode}}.tranches", path=GATK_DIR),
+	output:
+		filtered_vcf = expand("{path}/Haplotype_joint_call_F1_{{mode}}_VQSLOD_filtered_cutoff_{{cutoff}}.vcf", path=GATK_DIR),
+	shell:
+		"""
+		{JAVA} -Xmx4g -jar {GATK_1_8_1} -T ApplyRecalibration \
+		-R {input.reference} \
+		-input {input.novel_vcf}\
+   		--ts_filter_level {wildcards.cutoff} \
+   		-tranchesFile {input.tranches} \
+   		-recalFile {input.recal} \
+   		-mode {wildcards.mode} \
+   		-o {output.filtered_vcf}
+		"""
+
+############################################################
+
+
+#####################
+## GATK hard filtering
+######################
+
+rule apply_hard_filters_vcf:
+        input:
+                vcf = expand("{path}/Haplotype_joint_call_F1.vcf", path=GATK_DIR)
+        output:
+                vcf = expand("{path}/Haplotype_joint_call_F1_stringent_filtering.vcf", path=GATK_DIR)
+        params:
+                MQ_min = 58,
+                MQRankSum_min = -2.5,
+                MQRankSum_max = 2.5,
+                QD_min = 20,
+                SOR_max = 1.5,
+                FS_max = 10,
+                ReadPosRankSum_min = -4,
+                ReadPosRankSum_max = 4,
+        shell:
+                """
+		{BCFTOOLS} view -i 'MQ > {params.MQ_min} & MQRankSum > {params.MQRankSum_min} & MQRankSum < {params.MQRankSum_max} & QD > {params.QD_min} \
+		& SOR < {params.SOR_max} & FS < {params.FS_max} & ReadPosRankSum > {params.ReadPosRankSum_min} & ReadPosRankSum < {params.ReadPosRankSum_max}' {input} > {output}
+                """
+
+rule apply_lenient_filters_vcf:
+        input:
+                vcf = expand("{path}/Haplotype_joint_call_F1.vcf", path=GATK_DIR)
+        output:
+                vcf = expand("{path}/Haplotype_joint_call_F1_lenient_filtering.vcf", path=GATK_DIR)
+        params:
+                MQ_min = 40,
+                MQRankSum_min = -12.5,
+                MQRankSum_max = 12.5,
+                QD_min = 2,
+                SOR_max = 3,
+                FS_max = 60,
+                ReadPosRankSum_min = -8,
+                ReadPosRankSum_max = 8,
+        shell:
+                """
+		{BCFTOOLS} view -i 'MQ > {params.MQ_min} & MQRankSum > {params.MQRankSum_min} & MQRankSum < {params.MQRankSum_max} & QD > {params.QD_min} \
+		& SOR < {params.SOR_max} & FS < {params.FS_max} & ReadPosRankSum > {params.ReadPosRankSum_min} & ReadPosRankSum < {params.ReadPosRankSum_max}' {input} > {output}
+                """
+ 
+
+
+######################
+# GATK quality control
+######################
+
+
+rule quality_by_depth:
+	input:
+		vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+	output:
+		SNP =  expand("{path}/quality_filters/Quality_By_Depth_QD_SNP{{filter}}.txt", path=GATK_DIR),
+		INDEL =  expand("{path}/quality_filters/Quality_By_Depth_QD_INDEL{{filter}}.txt", path=GATK_DIR)
+	shell:
+		"""
+		cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+		for (i=5; i<=NF; i++) {{if ($(i) ~ /QD/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/QD=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+		cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /QD/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/QD=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+		"""
+
+rule Fisher_Strand:
+	input:
+		vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+	output:
+		SNP =  expand("{path}/quality_filters/Fisher_Strand_FS_SNP{{filter}}.txt", path=GATK_DIR),
+		INDEL =  expand("{path}/quality_filters/Fisher_Strand_FS_INDEL{{filter}}.txt", path=GATK_DIR)
+	shell:
+		"""
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /FS/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/FS=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /FS/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/FS=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+                """
+
+rule Strand_Odds_Ratio:
+        input:
+                vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+        output:
+                SNP =  expand("{path}/quality_filters/Strand_Odds_Ratio_SOR_SNP{{filter}}.txt", path=GATK_DIR),
+                INDEL =  expand("{path}/quality_filters/Strand_Odds_Ratio_SOR_INDEL{{filter}}.txt", path=GATK_DIR)
+        shell:
+                """
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /SOR/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/SOR=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /SOR/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/SOR=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+                """
+
+rule Mapping_Quality:
+        input:
+                vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+        output:
+                SNP =  expand("{path}/quality_filters/Mapping_Quality_MQ_SNP{{filter}}.txt", path=GATK_DIR),
+                INDEL =  expand("{path}/quality_filters/Mapping_Quality_MQ_INDEL{{filter}}.txt", path=GATK_DIR)
+        shell:
+                """
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /MQ=/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/MQ=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /MQ=/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/MQ=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+                """
+
+rule Mapping_Quality_Rank_Sum:
+	input:
+		vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+	output:
+		SNP =  expand("{path}/quality_filters/Mapping_Quality_Rank_Sum_SNP{{filter}}.txt", path=GATK_DIR),
+		INDEL =  expand("{path}/quality_filters/Mapping_Quality_Rank_Sum_INDEL{{filter}}.txt", path=GATK_DIR)
+	shell:
+		"""
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /MQRankSum/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/MQRankSum=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /MQRankSum/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/MQRankSum=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+                """
+
+rule Rank_Sum_Test:
+        input:
+                vcf =  expand("{path}/Haplotype_joint_call{{filter}}.vcf", path=GATK_DIR)
+        output:
+                SNP =  expand("{path}/quality_filters/Rank_Sum_Test_SNP{{filter}}.txt", path=GATK_DIR),
+                INDEL =  expand("{path}/quality_filters/Rank_Sum_Test_INDEL{{filter}}.txt", path=GATK_DIR)
+        shell:
+                """
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /ReadPosRankSum/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/ReadPosRankSum=//g' | awk 'length($3) == length($4)' | awk 'NF==5' > {output.SNP};
+                cat {input} | grep -v "#" | sed 's/;/\\t/g' | awk '{{printf $1; printf "\\t"; printf $2; printf "\\t"; printf $4; printf "\\t"; printf $5; printf "\\t"; \
+                for (i=5; i<=NF; i++) {{if ($(i) ~ /ReadPosRankSum/) {{printf $(i)}}}}; printf "\\n"}}'| sed 's/ReadPosRankSum=//g' | awk 'length($3) != length($4)' | awk 'NF==5' > {output.INDEL};
+                """
+
+
+#################
+# GENOME COVERAGE
+#################
+#
+# Here we evaluate what regions of the genome are covered by high quality reads
+# This is important to identify those regions with low quality genotyping due to low coverage
+
+
+
+rule bedcoverage:
+	input:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot_BQSR.bam", path=MAPPING_SCRATCH_DIR),
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed", path=MAPPING_SCRATCH_DIR)
+	shell:
+		"""
+		{BEDTOOLS} genomecov -ibam {input} -d | awk '{{print $1 "\\t" $2-1 "\\t" $2 "\\t" $3}}' > {output}
+		"""
+
+rule high_coverage_regions:
+	input:
+		expand("{path}/{fastq_name}_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed", path=MAPPING_SCRATCH_DIR, fastq_name=FASTQ_WILDCARD)
+	output:
+		expand("{path}/genome_regions_with_coverage_greater_than_10_in_all_F1_lines.bed.gz", path=MAPPING_SCRATCH_DIR)
+	params:
+		min_coverage = 10
+	shell:
+		"""
+		paste {input} | cut -f 1-4,8,12,16,20,24,28,32,36 | awk '{{PASS=1; for (i=2; i<=NF; i++) {{if ($(i)<{params.min_coverage}) {{PASS=0}}}}; if (PASS) {{print}}}}' \
+		| cut -f1-3 | {BEDTOOLS} merge -i - | {FILTER_1COL} 1 <(echo -e "chr2L\\nchr2R\\nchr3L\\nchr3R\\nchr4\\nchrM\\nchrX\\nchrY") | sort -k1,1 -k2,2g > {output}	
+		"""
+
+################################
+# Copying files to genome folder
+################################
+
+rule copy_final_files:
+	input:
+		lenient_vcf = expand("{path}/Haplotype_joint_call_F1_lenient_filtering.vcf", path=GATK_DIR),
+		stringent_vcf = expand("{path}/Haplotype_joint_call_F1_stringent_filtering.vcf", path=GATK_DIR),
+		coverage = expand("{path}/genome_regions_with_coverage_greater_than_10_in_all_F1_lines.bed.gz", path=MAPPING_SCRATCH_DIR)
+	output:
+		lenient_vcf = expand("{path}/vcf/F1_haplotype_joint_call_GATK_lenient.vcf.gz", path=GEONOME_DIR),
+		stringent_vcf = expand("{path}/vcf/F1_haplotype_joint_call_GATK_stringent.vcf.gz", path=GEONOME_DIR),
+		coverage = expand("{path}/coverage/genome_regions_with_coverage_greater_than_10_in_all_F1_lines.bed.gz", path=GEONOME_DIR)
+	shell:
+		"""
+		cat {input.lenient_vcf} | {BGZIP} > {output.lenient_vcf}
+		{TABIX} -p vcf {output.lenient_vcf}
+		cat {input.stringent_vcf} | {BGZIP} > {output.stringent_vcf}
+                {TABIX} -p vcf {output.stringent_vcf}
+
+		cp {input.coverage} {output.coverage} 
+		"""
+

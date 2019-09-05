@@ -1,0 +1,309 @@
+---
+title: "Variant numbers"
+output:
+   BiocStyle::html_document:
+      toc: true
+      df_print: paged
+      self_contained: true
+      code_download: true
+      highlight: tango
+#bibliography: knn_ml_intro.bib
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r style, echo=FALSE, results="asis"}
+library("knitr")
+options(digits = 2, width = 80)
+options(bitmapType = 'cairo')
+golden_ratio <- (1 + sqrt(5)) / 2
+opts_chunk$set(echo = TRUE, tidy = FALSE, include = TRUE, cache.lazy = FALSE,
+               dev=c('png', 'pdf', 'svg'), fig.height = 5, fig.width = 4 * golden_ratio, comment = '  ', dpi = 300)
+```
+
+```{r setup, comment=NA, echo=FALSE}
+.libPaths( c( .libPaths(), "/g/furlong/forneris/software/R/"))
+library(ggplot2)
+library(ggthemes)
+knitr::opts_chunk$set(fig.path = "images/")
+knitr::opts_chunk$set(cache=TRUE)
+options(stringsAsFactors = FALSE)
+options(bitmapType = 'cairo')
+```
+
+# General statistics
+
+## Total number of variants identified
+
+Here I report the total number of variants identified with stringent and lenient filters
+
+```{r number_of_variants, comment=NA, engine="sh", echo=FALSE}
+echo "Lenient filters: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_lenient_filtering.vcf | grep -v "#" | wc -l
+
+echo "Stringent filters: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | wc -l
+```
+
+## Number of SNPs, INDELs, COMPLEX
+
+I use the stringent set for this counts. INDELS are always reference vs F1 line. Complex variants are multiallelic loci.
+
+```{r number_of_SNP_INDELS, comment=NA, engine="sh", echo=FALSE}
+echo "Number of biallelic SNPs: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk 'length($4)==1 && length($5)==1' | wc -l
+
+echo "Number of biallelic insertions (DGRP/vgn allele is longer than dm6): "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk 'length($4)==1 && length($5)>1' | awk '!($5 ~/,/)' | wc -l
+
+echo "Number of biallelic deletions (DGRP/vgn allele is shorter than dm6): "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk 'length($4)>1 && length($5)==1' | awk '!($5 ~/,/)' | wc -l
+
+echo "Number of multiallelic variants (complex variants): "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk '$5 ~/,/' | wc -l
+
+echo -e "\n\nThe previuos numbers sum up to the total of the stringent set of variants. Here are a few subset of the numbers above that may be interesting\n\n"
+
+echo "Number of biallelic insertions >=10bp (DGRP/vgn allele is shorter than dm6): "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk 'length($4)==1 && length($5)>=10' | awk '!($5 ~/,/)' | wc -l
+
+echo "Number of biallelic deletions >=10bp (DGRP/vgn allele is shorter than dm6): "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk 'length($4)>=10 && length($5)==1' | awk '!($5 ~/,/)' | wc -l
+
+echo "Number of multiallelic variants that involve only SNPs: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk '$5 ~/,/' | cut -f4,5 | sed 's/,/\t/g' | awk '{SNP=1; for (i=1; i<=NF; i++) {if (length($(i)) > 1 || $(i) == "*") {SNP=0}}; if (SNP) {print}}' | wc -l
+
+echo "Number of multiallelic variants that involve INDELs:"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | awk '$5 ~/,/' | cut -f4,5 | sed 's/,/\t/g' | awk '{SNP=0; for (i=1; i<=NF; i++) {if (length($(i)) > 1 || $(i) == "*") {SNP=1}}; if (SNP) {print}}' | wc -l
+```
+
+## Homozygous / Heterozyogus
+
+Multiallelic loci that are homzoygous are counted as homozygous here. SO there can be many alleles for the same variants, but a long as they are homzygous inside the same line the variant is counted as homozygous.
+
+```{r number_of_homozygous_heterozygous, comment=NA, engine="sh", echo=FALSE}
+echo "Total number of variants that are homozygous across all lines: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk '{HET=0; for (i=10; i<=NF; i++) {split($(i), A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}}; if (!(HET)) {print}}' | wc -l
+
+echo "Number of variants that have an heterozygous genotype in at least one of the lines: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk '{HET=0; for (i=10; i<=NF; i++) {split($(i), A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}}; if (HET) {print}}' | wc -l
+```
+
+## Missing values
+
+If a variant is ungenotyped ("./." in the vcf) in at least one line (out of 9) then it is counted here
+
+```{r number_of_missing_values, comment=NA, engine="sh", echo=FALSE}
+echo "Variants with at least one missing value among all the lines: "
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$0 ~ /\t\.\/\.\t/' | wc -l
+```
+
+## Number of genomic bases covered by at least 10 reads in all of the 9 lines
+
+Here we consider only mapped an unique reads. The reads here are the same used as input for the variant call
+
+```{r number_of_bases_covered, comment=NA, engine="sh", echo=FALSE}
+echo "Number of bases covered by at least 10 reads in all of the 9 lines: "
+cat /scratch/perino/F1_genotyping/mapping/genome_regions_with_coverage_greater_than_10_in_all_F1_lines.bed.gz | awk '{sum += ($3-$2)} END {print sum}'
+
+echo "Total number of base pairs in the dm6 genome assembly: "
+cat /g/furlong/genome/D.melanogaster/Dm6_Wolbachia/fasta/dm6.AE017196.fasta | grep -v "^>" | awk '{print length($0)}' | awk '{sum += $1} END {print sum}'
+```
+
+
+
+<br> <br>
+
+# Line specific numbers
+
+## Total variant between each DGRP line and virginizer (stringent filters)
+
+Here I report the pairwise number of variants that can distiguish the parental genotypes of DGRP and virginzier hybrids. I use the stringent set (which is the one that should be used for this purpouse).
+I only consider SNPs that are homozygous in both parents. This is the specific subset of variants that should be used for splitting parental genotypes.
+
+```{r number_of_variants_between _DGRP_and_vgn, engine="sh", comment=NA, echo=FALSE}
+echo -e "\nDGRP-28 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$10=="0/0" || $10=="1/1"' |  awk '$10 != $18' | wc -l
+
+echo -e "\nDGRP-307 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$11=="0/0" || $11=="1/1"' |  awk '$11 != $18' | wc -l
+
+echo -e "\nDGRP-399 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$12=="0/0" || $12=="1/1"' |  awk '$12 != $18' | wc -l
+
+echo -e "\nDGRP-57 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$13=="0/0" || $13=="1/1"' |  awk '$13 != $18' | wc -l
+
+echo -e "\nDGRP-639 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$14=="0/0" || $14=="1/1"' |  awk '$14 != $18' | wc -l
+
+echo -e "\nDGRP-712 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$15=="0/0" || $15=="1/1"' |  awk '$15 != $18' | wc -l
+
+echo -e "\nDGRP-714 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$16=="0/0" || $16=="1/1"' |  awk '$16 != $18' | wc -l
+
+echo -e "\nDGRP-852 vs vgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,]*//g' | awk 'length($4)==1 && length($5)==1' | awk '$18=="0/0" || $18=="1/1"' | awk '$17=="0/0" || $17=="1/1"' |  awk '$17 != $18' | wc -l
+```
+
+
+## Line specific heterzygosity
+
+Here I count variants that have an heterozygous state for each line individually. Multiallelic loci are included.
+
+```{r number_of_heterzygous_variants_in_each_line, engine="sh", comment=NA, echo=FALSE}
+echo -e "\nDGRP-28 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($10, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-307 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($11, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-399 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($12, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-57 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($13, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-639 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($14, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-712 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($15, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-714 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($16, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nDGRP-852 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($17, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+
+echo -e "\nvgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '{HET=0; split($18, A, "/"); ONE=A[1]; TWO=A[2]; if (ONE!=TWO) {HET=1}; if (HET) {print}}' | wc -l
+```
+
+## Line specific missing genotypes
+
+Here we count the missing values ("./."" in the vcf) for each line
+
+```{r number_of_missing_variants_in_each_line, engine="sh", comment=NA, echo=FALSE}
+echo -e "\nDGRP-28 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$10 == "./."' | wc -l
+
+echo -e "\nDGRP-307 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$11 == "./."' | wc -l
+
+echo "\nDGRP-399 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$12 == "./."' | wc -l
+
+echo -e "\nDGRP-57 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$13 == "./."' | wc -l
+
+echo -e "\nDGRP-639 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$14 == "./."' | wc -l
+
+echo -e "\nDGRP-712 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$15 == "./."' | wc -l
+
+echo -e "\nDGRP-714 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$16 == "./."' | wc -l
+
+echo -e "\nDGRP-852 :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$17 == "./."' | wc -l
+
+echo -e "\nvgn :"
+cat ../../../analysis/GATK_variant_call/Haplotype_joint_call_F1_stringent_filtering.vcf | grep -v "#" | sed 's/:[0-9:,.]*//g' | awk '$18 == "./."' | wc -l
+```
+
+## Line specific amount of Wolbachia genome
+
+Here we consider only mapped an unique reads. The reads here are the same used as input for the variant call
+
+```{r Wolbachia_amount, engine="sh", comment=NA, echo=FALSE}
+echo -e "DGRP-28 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-307 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-399 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-57 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-639 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-639_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-639_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-712 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-714 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nDGRP-852 :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+
+echo -e "\nvgn :"
+echo -e "Reads mapping on Wolbachia genome :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed_rmduplicates.bam 2> /dev/null | head -n1 | cut -f3
+echo -e "Total number of reads :"
+/g/funcgen/bin/samtools idxstats  /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed_rmduplicates.bam 2> /dev/null | awk '{sum += $3} END {print sum}'
+```
+
+## Line specific number of genomic bases coved by at least 10 reads
+
+Here we consider only mapped an unique reads. The reads here are the same used as input for the variant call
+
+```{r amount_of_genome_covered, engine="sh", comment=NA, echo=FALSE}
+echo -e "\nDGRP-28 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-28_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-307 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-307_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-399 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-399_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-57 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-57_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-712 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-712 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-712_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}'
+
+echo -e "\nDGRP-714 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-714_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nDGRP-852 :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_DGRP-852_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+
+echo -e "\nvgn :"
+cat /scratch/perino/F1_genotyping/mapping/parental_F1_vgn_trimmed_rmduplicates_annot_BQSR_coverage_perbase.bed | awk '$4>=10' | awk '{sum += ($3-$2)} END {print sum}' 
+```

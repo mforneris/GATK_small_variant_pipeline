@@ -1,0 +1,18 @@
+{
+  "__default__" :
+  {
+    "sbatch" : "sbatch -o logs/{rule}.{wildcards}.%j.out -e logs/{rule}.{wildcards}.%j.out",
+    "partition" : "htc",
+    "n" : "1", #n cores
+    "mem" : "8G",
+    "moreoptions" : "-t 08:00:00"
+  },
+"haplotype_caller" :
+  {
+    "sbatch" : "sbatch -o logs/{rule}.{wildcards}.%j.out -e logs/{rule}.{wildcards}.%j.out",
+    "partition" : "htc",
+    "n" : "1", #n cores
+    "mem" : "32G",
+    "moreoptions" : "-t 108:00:00"
+  }
+}

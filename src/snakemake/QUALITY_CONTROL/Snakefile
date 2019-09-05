@@ -1,0 +1,113 @@
+# Paths
+FASTQ_DIR = config["paths"]["fastq"]
+FASTQC_DIR = config["paths"]["fastqc"]
+MULTIQC_DIR = config["paths"]["multiqc"]
+MAPPING_SCRATCH_DIR = config["paths"]["mapping_scratch"]
+JOINT_GENOME_DIR = config["paths"]["joint_genome"]
+MAPQC_DIR = config["paths"]["mapqc"]
+
+# Tools
+FASTQC = config["tools"]["fastqc"]
+MULTIQC = config["tools"]["multiqc"]
+PICARD =config["tools"]["picard"]
+
+# Variables
+FASTQ_WILDCARD_BASENAME, = glob_wildcards("/g/furlong/project/71_F1_parental_genotyping/data/fastq/parental_F1_{fastq_name}_1.fastq.gz")
+FASTQ_WILDCARD = ["parental_F1_" + n for n in FASTQ_WILDCARD_BASENAME]
+PAIR = ['1', '2']
+#### Debug
+#FASTQ_WILDCARD = ["parental_F1_DGRP-399"]
+###########
+
+# Targets
+FASTQC_OUTPUT = expand("{path}/{fastq_name}_{pair}/{fastq_name}_{pair}_fastqc.html" , path=FASTQC_DIR, fastq_name=FASTQ_WILDCARD, pair=PAIR)
+MULTIPLE_METRICS_OUTPUT = expand("{path}/{fastq_name}_trimmed_markduplicates.gc_bias.detail_metrics", path=MAPQC_DIR, fastq_name=FASTQ_WILDCARD)
+RAW_WGS_METRICS_OUTPUT = expand("{path}/{fastq_name}_trimmed_markduplicates.CollectRawWgsMetrics", path=MAPQC_DIR, fastq_name=FASTQ_WILDCARD)
+LIBRARY_COMPLEXITY_METRICS_OUTPUT = expand("{path}/{fastq_name}_trimmed_markduplicates.EstimateLibraryComplexity", path=MAPQC_DIR, fastq_name=FASTQ_WILDCARD)
+MAPPING_MULTIQC_OUTPUT = "/g/furlong/project/71_F1_parental_genotyping/analysis/QC/multiQC/mapping_multiQC/multiqc_report.html"
+
+rule all:
+	input:
+		FASTQC_OUTPUT, MULTIPLE_METRICS_OUTPUT, RAW_WGS_METRICS_OUTPUT, LIBRARY_COMPLEXITY_METRICS_OUTPUT, MAPPING_MULTIQC_OUTPUT
+
+##########
+# FASTQ QC
+##########
+
+rule fastqc:
+	input:
+		expand("{path}/{{fastq_name}}_{{pair}}.fastq.gz", path=FASTQ_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_{{pair}}/{{fastq_name}}_{{pair}}_fastqc.html", path=FASTQC_DIR)
+	shell:
+		"""
+		mkdir -p {FASTQC_DIR}/{wildcards.fastq_name}_{wildcards.pair};
+		{FASTQC} {input} -o {FASTQC_DIR}/{wildcards.fastq_name}_{wildcards.pair};
+		"""
+
+rule fastqc_multiqc:
+	input:
+		FASTQC_OUTPUT
+	output:
+		expand("{path}/fastq_multiQC/multiqc_report.html", path=MULTIQC_DIR)
+	shell:
+		"""
+		{MULTIQC} -f {FASTQC_DIR} -o {MULTIQC_DIR}/fastq_multiQC/ -c multiqc_config.yaml
+		"""
+
+############
+# MAPPING QC
+############
+
+rule picard_CollectMultipleMetrics:
+	input:
+		bam = expand("{path}/{{fastq_name}}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR),
+		ref = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_markduplicates.gc_bias.detail_metrics", path=MAPQC_DIR)
+	params:
+		stringency = "VALIDATION_STRINGENCY=LENIENT",
+		paired = "INCLUDE_UNPAIRED=False"
+	shell:
+		"""
+		{PICARD} CollectMultipleMetrics I={input.bam} O={MAPQC_DIR}/{wildcards.fastq_name}_trimmed_markduplicates R={input.ref} \
+		PROGRAM={{CollectAlignmentSummaryMetrics,CollectGcBiasMetrics,CollectInsertSizeMetrics,QualityScoreDistribution}} \
+		{params.stringency} {params.paired}
+		"""
+
+rule picard_CollectRawWgsMetrics:
+	input:
+		bam = expand("{path}/{{fastq_name}}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR),
+		ref = expand("{path}/dm6.AE017196.fasta", path=JOINT_GENOME_DIR)
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_markduplicates.CollectRawWgsMetrics", path=MAPQC_DIR)
+	params:
+		stringency = "VALIDATION_STRINGENCY=LENIENT"
+	shell:
+		"""
+		{PICARD} CollectRawWgsMetrics I={input.bam} O={output} R={input.ref} \
+		{params.stringency}
+		"""
+
+rule picard_EstimateLibraryComplexity:
+	input:
+		bam = expand("{path}/{{fastq_name}}_trimmed_markduplicates.bam", path=MAPPING_SCRATCH_DIR),
+	output:
+		expand("{path}/{{fastq_name}}_trimmed_markduplicates.EstimateLibraryComplexity", path=MAPQC_DIR)
+	params:
+		stringency = "VALIDATION_STRINGENCY=LENIENT"
+	shell:
+		"""
+		{PICARD} EstimateLibraryComplexity I={input.bam} O={output} \
+		{params.stringency}
+		"""
+
+rule mapping_multiqc:
+        input:
+                MULTIPLE_METRICS_OUTPUT, RAW_WGS_METRICS_OUTPUT, LIBRARY_COMPLEXITY_METRICS_OUTPUT
+        output:
+                expand("{path}/mapping_multiQC/multiqc_report.html", path=MULTIQC_DIR)
+        shell:
+                """
+                {MULTIQC} -f {MAPQC_DIR} -o {MULTIQC_DIR}/mapping_multiQC -c multiqc_config.yaml
+                """

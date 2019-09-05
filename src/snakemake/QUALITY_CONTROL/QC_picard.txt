@@ -1,0 +1,10 @@
+CollectAlignmentSummaryMetrics
+CollectGcBiasMetrics
+CollectInsertSizeMetrics
+CollectMultipleMetrics
+CollectSequencingArtifactMetrics
+QualityScoreDistribution
+
+
+CollectRawWgsMetrics
+EstimateLibraryComplexity
