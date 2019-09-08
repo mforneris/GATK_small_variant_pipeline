@@ -11,3 +11,4 @@ log/
 62_expression_variation
 analysis/
 data/
+*nohup*
