@@ -43,7 +43,7 @@ Theis software is necessary to run the pipeline. In general, you need an [Anacon
 The table below lists the software necessary to run the pipeline, the version used in this pipeline and the conda command to install the software (simply run in a shell to install). If you want to install a specific version of the softare use '=='. E.g. to install version 0.11.5 of fastqc run 'conda install -c bioconda fastqc==0.11.5'
 
 | Software  |  version | conda install command |
-|---|---|---|---|
+|:---|:---|:---:|
 | fastqc | 0.11.5 | conda install -c bioconda fastqc |
 | multiqc | 1.6 | conda install -c bioconda multiqc |
 | trimgalore | 0.5.0 | conda install -c bioconda trim-galore |
