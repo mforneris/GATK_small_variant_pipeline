@@ -12,3 +12,6 @@ log/
 analysis/
 data/
 *nohup*
+*example*
+*DS_Store*
+*gitignore*
