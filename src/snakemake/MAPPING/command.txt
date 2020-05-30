@@ -1,1 +1,0 @@
-/g/furlong/forneris/software/TrimGalore-0.5.0/trim_galore -q 30 --phred33 --fastqc --illumina --length 75 --paired ../../../data/fastq/parental_F1_DGRP-399_1.fastq.gz ../../../data/fastq/parental_F1_DGRP-399_2.fastq.gz -o /scratch/forneris/F1_genotyping/trimmed_fastq/

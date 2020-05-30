@@ -2,7 +2,7 @@
 
 <br />
 
-Practice](https://software.broadinstitute.org/gatk/best-practices/workflow?id=11145) in four snakemake pipelines. The workflow goes from fastq mapping and variant call to quality control and filtering. 
+This pipeline is a complete implementation of GATK [Variant Call Best Practice](https://gatk.broadinstitute.org/hc/en-us/sections/360007226651-Best-Practices-Workflows) in four snakemake pipelines. The workflow goes from fastq mapping and variant call to quality control and filtering. 
 
 
 
